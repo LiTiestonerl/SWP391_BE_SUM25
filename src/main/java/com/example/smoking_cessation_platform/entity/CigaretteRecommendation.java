@@ -1,4 +1,4 @@
-package com.example.smoking_cessation_platform.Entity;
+package com.example.smoking_cessation_platform.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString // No need to exclude anything as this is a leaf entity in terms of collections
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "cigarette_recommendation")
@@ -25,13 +25,15 @@ public class CigaretteRecommendation implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer recId;
 
-    @Column(name = "from_package_id", nullable = false)
-    private Long fromPackageId;
 
-    @Column(name = "to_package_id", nullable = false)
-    private Long toPackageId;
-
-    @Column(name = "notes")
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_package_id", nullable = false)
+    private CigarettePackage fromPackage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_package_id", nullable = false)
+    private CigarettePackage toPackage;
 }

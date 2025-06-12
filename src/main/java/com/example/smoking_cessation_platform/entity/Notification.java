@@ -1,4 +1,4 @@
-package com.example.smoking_cessation_platform.Entity;
+package com.example.smoking_cessation_platform.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,12 +8,12 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; // Dùng LocalDateTime cho kiểu DATETIME
 
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString // Không cần loại trừ gì vì Notification không chứa các Set khác
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "notification")
@@ -22,12 +22,12 @@ public class Notification implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notification_id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer notificationId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
 
     @Column(name = "notification_type")
     private String notificationType;
@@ -38,13 +38,16 @@ public class Notification implements Serializable {
     @Column(name = "status")
     private String status = "sent";
 
-    @Column(name = "quit_plan_id")
-    private Integer quitPlanId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
 
-    @Column(name = "achievement_id")
-    private Integer achievementId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quit_plan_id")
+    private QuitPlan quitPlan;
 
-    @Column(name = "content")
-    private String content;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "achievement_id")
+    private AchievementBadge achievementBadge;
 }

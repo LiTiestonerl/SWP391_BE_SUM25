@@ -1,4 +1,4 @@
-package com.example.smoking_cessation_platform.Entity;
+package com.example.smoking_cessation_platform.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
 
 @Entity
 @Getter
@@ -26,12 +26,6 @@ public class UserMemberPackage implements Serializable {
     @Column(name = "user_member_package_id", nullable = false)
     private Integer userMemberPackageId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "member_package_id", nullable = false)
-    private Integer memberPackageId;
-
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
@@ -41,4 +35,11 @@ public class UserMemberPackage implements Serializable {
     @Column(name = "status")
     private String status = "active";
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_package_id", nullable = false)
+    private MemberPackage memberPackage;
 }

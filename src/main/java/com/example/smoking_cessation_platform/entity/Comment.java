@@ -1,4 +1,4 @@
-package com.example.smoking_cessation_platform.Entity;
+package com.example.smoking_cessation_platform.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString // No need to exclude anything as this is a leaf entity in terms of collections
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "comment")
@@ -26,11 +26,8 @@ public class Comment implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer commentId;
 
-    @Column(name = "post_id", nullable = false)
-    private Integer postId;
-
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
 
     @Column(name = "comment_date")
     private LocalDateTime commentDate;
@@ -38,7 +35,13 @@ public class Comment implements Serializable {
     @Column(name = "status")
     private String status = "active";
 
-    @Column(name = "content")
-    private String content;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
 }
