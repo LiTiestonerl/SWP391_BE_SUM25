@@ -1,0 +1,45 @@
+package com.example.smoking_cessation_platform.dto.auth;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data // Bao gồm @Getter, @Setter, @EqualsAndHashCode, @ToString
+@Builder // Dùng để tạo đối tượng dễ dàng hơn
+@NoArgsConstructor
+@AllArgsConstructor
+public class RegisterRequest {
+
+    @NotBlank(message = "Tên người dùng không được để trống")
+    @Size(min = 3, max = 50, message = "Tên người dùng phải có từ 3 đến 50 ký tự")
+    private String userName;
+
+    @NotBlank(message = "Mật khẩu không được để trống")
+    @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
+    // Ví dụ: Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{6,}$",
+            message = "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt")
+    private String password; // Đổi tên từ 'pass' thành 'password' cho rõ ràng và dễ bảo mật
+
+    @NotBlank(message = "Họ và tên không được để trống")
+    @Size(max = 100, message = "Họ và tên không vượt quá 100 ký tự")
+    private String fullName;
+
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không hợp lệ")
+    @Size(max = 255, message = "Email không vượt quá 255 ký tự")
+    private String email;
+
+    @NotBlank(message = "Số điện thoại không được để trống")
+    @Pattern(regexp = "^[0-9]{10,11}$", message = "Số điện thoại không hợp lệ (10 hoặc 11 chữ số)")
+    private String phone;
+
+    // roleId không cần trong request vì khi đăng ký, người dùng thường có role mặc định (ví dụ: USER)
+    // Nếu bạn muốn cho phép đăng ký với các vai trò khác nhau, bạn có thể thêm nó vào đây
+    // private Integer roleId;
+}
