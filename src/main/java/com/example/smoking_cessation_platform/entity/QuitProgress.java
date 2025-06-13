@@ -27,9 +27,6 @@ public class QuitProgress implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer progressId;
 
-    @Column(name = "stage_id", nullable = false)
-    private Integer stageId;
-
     @Column(name = "date")
     private LocalDate date;
 
@@ -45,7 +42,10 @@ public class QuitProgress implements Serializable {
     @Column(name = "smoking_free_days")
     private Integer smokingFreeDays;
 
-    @Column(name = "health_status")
+    @Column(name = "health_status", columnDefinition = "TEXT")
     private String healthStatus;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stage_id", nullable = false)
+    private QuitPlanStage quitPlanStage;
 }

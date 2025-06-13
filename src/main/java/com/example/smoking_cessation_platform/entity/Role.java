@@ -8,11 +8,13 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
+import java.util.HashSet; // Cần import Set và HashSet
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "users")
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "role")
@@ -25,10 +27,13 @@ public class Role implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer roleId;
 
-    @Column(name = "role_name")
+    @Column(name = "role_name", unique = true)
     private String roleName;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<Users> users = new HashSet<>();
 
 }

@@ -26,11 +26,8 @@ public class ChatMessage implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer messageId;
 
-    @Column(name = "session_id", nullable = false)
-    private Integer sessionId;
-
-    @Column(name = "sender_id", nullable = false)
-    private Long senderId;
+    @Column(name = "message", columnDefinition = "TEXT")
+    private String message;
 
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
@@ -38,7 +35,12 @@ public class ChatMessage implements Serializable {
     @Column(name = "status")
     private String status = "active";
 
-    @Column(name = "message")
-    private String message;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", nullable = false)
+    private ChatSession chatSession;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id", nullable = false)
+    private Users sender;
 }

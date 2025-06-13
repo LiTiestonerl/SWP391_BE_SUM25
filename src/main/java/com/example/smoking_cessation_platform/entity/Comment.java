@@ -26,11 +26,8 @@ public class Comment implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer commentId;
 
-    @Column(name = "post_id", nullable = false)
-    private Integer postId;
-
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
 
     @Column(name = "comment_date")
     private LocalDateTime commentDate;
@@ -38,7 +35,13 @@ public class Comment implements Serializable {
     @Column(name = "status")
     private String status = "active";
 
-    @Column(name = "content")
-    private String content;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
 }

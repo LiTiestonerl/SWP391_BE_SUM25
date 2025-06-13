@@ -25,13 +25,15 @@ public class CigaretteRecommendation implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer recId;
 
-    @Column(name = "from_package_id", nullable = false)
-    private Long fromPackageId;
 
-    @Column(name = "to_package_id", nullable = false)
-    private Long toPackageId;
-
-    @Column(name = "notes")
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_package_id", nullable = false)
+    private CigarettePackage fromPackage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_package_id", nullable = false)
+    private CigarettePackage toPackage;
 }

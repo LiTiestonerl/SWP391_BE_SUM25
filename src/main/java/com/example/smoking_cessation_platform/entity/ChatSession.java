@@ -9,11 +9,13 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "chatMessages")
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "chat_session")
@@ -26,12 +28,6 @@ public class ChatSession implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer sessionId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "coach_id", nullable = false)
-    private Long coachId;
-
     @Column(name = "start_time")
     private LocalDateTime startTime;
 
@@ -41,4 +37,26 @@ public class ChatSession implements Serializable {
     @Column(name = "status")
     private String status = "active";
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coach_id", nullable = false)
+    private Users coach;
+
+
+    @OneToMany(mappedBy = "chatSession", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<ChatMessage> chatMessages = new HashSet<>();
+
+    public void addChatMessage(ChatMessage message) {
+        this.chatMessages.add(message);
+        message.setChatSession(this);
+    }
+
+    public void removeChatMessage(ChatMessage message) {
+        this.chatMessages.remove(message);
+        message.setChatSession(null);
+    }
 }

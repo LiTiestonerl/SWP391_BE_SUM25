@@ -8,12 +8,14 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
+import java.util.HashSet; // Cần import Set và HashSet
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"quitPlanStages", "notifications", "ratings"})
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "quit_plan")
@@ -26,11 +28,6 @@ public class QuitPlan implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer planId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "coach_id")
-    private Long coachId;
 
     @Column(name = "start_date")
     private LocalDate startDate;
@@ -38,19 +35,39 @@ public class QuitPlan implements Serializable {
     @Column(name = "expected_end_date")
     private LocalDate expectedEndDate;
 
-    @Column(name = "recommended_package_id")
-    private Long recommendedPackageId;
-
     @Column(name = "status")
     private String status = "active";
 
-    @Column(name = "reason")
+    @Column(name = "reason", columnDefinition = "TEXT")
     private String reason;
 
-    @Column(name = "stages_description")
+    @Column(name = "stages_description", columnDefinition = "TEXT")
     private String stagesDescription;
 
-    @Column(name = "custom_notes")
+    @Column(name = "custom_notes", columnDefinition = "TEXT")
     private String customNotes;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coach_id")
+    private Users coach;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recommended_package_id")
+    private CigarettePackage recommendedPackage;
+
+    @OneToMany(mappedBy = "quitPlan", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<QuitPlanStage> quitPlanStages = new HashSet<>();
+
+    @OneToMany(mappedBy = "quitPlan", fetch = FetchType.LAZY)
+    private Set<Notification> notifications = new HashSet<>();
+
+    @OneToMany(mappedBy = "quitPlan", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<Rating> ratings = new HashSet<>();
 
 }

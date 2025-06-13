@@ -27,12 +27,6 @@ public class PaymentTransaction implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer transactionId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "member_package_id", nullable = false)
-    private Integer memberPackageId;
-
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
@@ -51,7 +45,14 @@ public class PaymentTransaction implements Serializable {
     @Column(name = "status")
     private String status = "completed";
 
-    @Column(name = "notes")
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_package_id", nullable = false)
+    private MemberPackage memberPackage;
 }

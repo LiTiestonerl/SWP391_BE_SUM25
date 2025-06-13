@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
 
 @Entity
 @Getter
@@ -27,8 +27,6 @@ public class SmokingStatus implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer statusId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
 
     @Column(name = "cigarettes_per_day")
     private Integer cigarettesPerDay;
@@ -36,13 +34,17 @@ public class SmokingStatus implements Serializable {
     @Column(name = "frequency")
     private String frequency;
 
-    @Column(name = "package_id")
-    private Long packageId;
-
     @Column(name = "price_per_pack")
     private BigDecimal pricePerPack;
 
     @Column(name = "record_date")
     private LocalDate recordDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "package_id")
+    private CigarettePackage cigarettePackage;
 }

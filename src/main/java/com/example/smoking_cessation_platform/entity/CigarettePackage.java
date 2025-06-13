@@ -9,11 +9,13 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set; // Import Set và HashSet
 
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"smokingStatuses", "quitPlans", "cigaretteRecommendationsFrom", "cigaretteRecommendationsTo"})
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "cigarette_package")
@@ -34,5 +36,17 @@ public class CigarettePackage implements Serializable {
 
     @Column(name = "sticks_per_pack", nullable = false)
     private Integer sticksPerPack;
+
+    @OneToMany(mappedBy = "cigarettePackage", fetch = FetchType.LAZY)
+    private Set<SmokingStatus> smokingStatuses = new HashSet<>();
+
+    @OneToMany(mappedBy = "recommendedPackage", fetch = FetchType.LAZY)
+    private Set<QuitPlan> quitPlans = new HashSet<>();
+
+    @OneToMany(mappedBy = "fromPackage", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<CigaretteRecommendation> cigaretteRecommendationsFrom = new HashSet<>();
+
+    @OneToMany(mappedBy = "toPackage", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<CigaretteRecommendation> cigaretteRecommendationsTo = new HashSet<>();
 
 }

@@ -26,14 +26,6 @@ public class Rating implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer ratingId;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
-
-    @Column(name = "coach_id", nullable = false)
-    private Long coachId;
-
-    @Column(name = "plan_id", nullable = false)
-    private Integer planId;
 
     @Column(name = "rating_value")
     private Integer ratingValue;
@@ -44,7 +36,18 @@ public class Rating implements Serializable {
     @Column(name = "status")
     private String status = "active";
 
-    @Column(name = "feedback_text")
+    @Column(name = "feedback_text", columnDefinition = "TEXT")
     private String feedbackText;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Users member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coach_id", nullable = false)
+    private Users coach;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id", nullable = false)
+    private QuitPlan quitPlan;
 }

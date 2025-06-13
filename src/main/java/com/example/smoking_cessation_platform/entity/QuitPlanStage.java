@@ -8,12 +8,14 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
+import java.util.HashSet; // Cần import Set và HashSet
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "quitProgresses")
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "quit_plan_stage")
@@ -25,9 +27,6 @@ public class QuitPlanStage implements Serializable {
     @Column(name = "stage_id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer stageId;
-
-    @Column(name = "plan_id", nullable = false)
-    private Integer planId;
 
     @Column(name = "stage_name")
     private String stageName;
@@ -41,7 +40,14 @@ public class QuitPlanStage implements Serializable {
     @Column(name = "target_cigarettes_per_day")
     private Integer targetCigarettesPerDay;
 
-    @Column(name = "notes")
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id", nullable = false)
+    private QuitPlan quitPlan;
+
+    @OneToMany(mappedBy = "quitPlanStage", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<QuitProgress> quitProgresses = new HashSet<>();
 
 }

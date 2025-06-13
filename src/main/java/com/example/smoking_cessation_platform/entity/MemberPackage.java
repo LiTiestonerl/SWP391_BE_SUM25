@@ -10,11 +10,13 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.HashSet; // Import Set and HashSet
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "userMemberPackages")
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "member_package")
@@ -40,7 +42,10 @@ public class MemberPackage implements Serializable {
     @Schema(description = "Tháng")
     private Integer duration;
 
-    @Column(name = "features_description")
+    @Column(name = "features_description", columnDefinition = "TEXT")
     private String featuresDescription;
+
+    @OneToMany(mappedBy = "memberPackage", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<UserMemberPackage> userMemberPackages = new HashSet<>();
 
 }

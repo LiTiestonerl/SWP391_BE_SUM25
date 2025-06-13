@@ -8,7 +8,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
 
 @Entity
 @Getter
@@ -26,13 +26,14 @@ public class UserBadge implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userBadgeId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "badge_id", nullable = false)
-    private Integer badgeId;
-
     @Column(name = "date_achieved")
     private LocalDate dateAchieved;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "badge_id", nullable = false)
+    private AchievementBadge badge;
 }
