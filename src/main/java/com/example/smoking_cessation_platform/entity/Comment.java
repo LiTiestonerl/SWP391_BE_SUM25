@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@ToString // No need to exclude anything as this is a leaf entity in terms of collections
+@ToString
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "comment")

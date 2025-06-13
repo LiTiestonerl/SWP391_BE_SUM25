@@ -16,7 +16,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@ToString(exclude = "userMemberPackages") // Exclude to prevent StackOverflowError
+@ToString(exclude = "userMemberPackages")
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "member_package")

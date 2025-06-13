@@ -15,7 +15,7 @@ import java.util.Set; // Import Set và HashSet
 @Entity
 @Getter
 @Setter
-@ToString(exclude = {"smokingStatuses", "quitPlans", "cigaretteRecommendationsFrom", "cigaretteRecommendationsTo"}) // Loại trừ các collection để tránh StackOverflowError
+@ToString(exclude = {"smokingStatuses", "quitPlans", "cigaretteRecommendationsFrom", "cigaretteRecommendationsTo"})
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "cigarette_package")

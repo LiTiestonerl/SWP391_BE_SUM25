@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@ToString // Không cần loại trừ gì vì PaymentTransaction không chứa các Set khác
+@ToString
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "payment_transaction")

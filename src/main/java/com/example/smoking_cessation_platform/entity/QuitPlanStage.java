@@ -15,7 +15,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@ToString(exclude = "quitProgresses") // Loại trừ collection "quitProgresses" để tránh lỗi StackOverflowError
+@ToString(exclude = "quitProgresses")
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "quit_plan_stage")

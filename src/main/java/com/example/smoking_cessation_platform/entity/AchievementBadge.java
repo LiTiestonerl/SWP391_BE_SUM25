@@ -14,7 +14,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@ToString(exclude = "userBadges") // Loại trừ để tránh lỗi stack overflow khi in toString
+@ToString(exclude = "userBadges")
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "achievement_badge")

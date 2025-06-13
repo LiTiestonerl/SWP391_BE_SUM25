@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@ToString // Không cần loại trừ gì vì Rating không chứa các Set khác
+@ToString
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "rating")

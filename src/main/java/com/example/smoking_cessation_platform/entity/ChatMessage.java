@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@ToString // Không cần exclude gì ở đây vì ChatMessage là leaf entity (không có Set các entity khác)
+@ToString
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "chat_message")

@@ -14,7 +14,7 @@ import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
 @Entity
 @Getter
 @Setter
-@ToString // Không cần exclude gì vì SmokingStatus không chứa các Set khác
+@ToString
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "smoking_status")

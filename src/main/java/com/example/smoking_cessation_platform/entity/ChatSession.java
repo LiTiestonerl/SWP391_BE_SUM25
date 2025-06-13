@@ -10,12 +10,12 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Set; // Import Set and HashSet
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@ToString(exclude = "chatMessages") // Exclude chatMessages to prevent StackOverflowError
+@ToString(exclude = "chatMessages")
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "chat_session")
@@ -27,8 +27,6 @@ public class ChatSession implements Serializable {
     @Column(name = "session_id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer sessionId;
-
-    // Thay thế userId và coachId bằng các đối tượng Entity có mối quan hệ
 
     @Column(name = "start_time")
     private LocalDateTime startTime;

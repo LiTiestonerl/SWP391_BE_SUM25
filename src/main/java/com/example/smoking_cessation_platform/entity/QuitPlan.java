@@ -15,7 +15,6 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-// Loại trừ các collection để tránh lỗi StackOverflowError khi gọi toString()
 @ToString(exclude = {"quitPlanStages", "notifications", "ratings"})
 @SuperBuilder
 @NoArgsConstructor

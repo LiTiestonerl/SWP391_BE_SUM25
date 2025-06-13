@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Entity
 @Getter
 @Setter
-@ToString // No need to exclude anything as this is a leaf entity in terms of collections
+@ToString
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "cigarette_recommendation")

@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-@ToString // Không cần exclude gì vì QuitProgress không chứa các Set khác
+@ToString
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "quit_progress")

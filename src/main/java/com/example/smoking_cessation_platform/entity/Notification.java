@@ -13,7 +13,7 @@ import java.time.LocalDateTime; // Dùng LocalDateTime cho kiểu DATETIME
 @Entity
 @Getter
 @Setter
-@ToString // Không cần loại trừ gì vì Notification không chứa các Set khác
+@ToString
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "notification")
