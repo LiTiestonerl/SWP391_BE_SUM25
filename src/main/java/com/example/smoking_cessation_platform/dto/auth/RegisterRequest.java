@@ -9,8 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data // Bao gồm @Getter, @Setter, @EqualsAndHashCode, @ToString
-@Builder // Dùng để tạo đối tượng dễ dàng hơn
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
@@ -21,10 +21,10 @@ public class RegisterRequest {
 
     @NotBlank(message = "Mật khẩu không được để trống")
     @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
-    // Ví dụ: Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt
+
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{6,}$",
             message = "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt")
-    private String password; // Đổi tên từ 'pass' thành 'password' cho rõ ràng và dễ bảo mật
+    private String password;
 
     @NotBlank(message = "Họ và tên không được để trống")
     @Size(max = 100, message = "Họ và tên không vượt quá 100 ký tự")
@@ -39,7 +39,4 @@ public class RegisterRequest {
     @Pattern(regexp = "^[0-9]{10,11}$", message = "Số điện thoại không hợp lệ (10 hoặc 11 chữ số)")
     private String phone;
 
-    // roleId không cần trong request vì khi đăng ký, người dùng thường có role mặc định (ví dụ: USER)
-    // Nếu bạn muốn cho phép đăng ký với các vai trò khác nhau, bạn có thể thêm nó vào đây
-    // private Integer roleId;
 }
