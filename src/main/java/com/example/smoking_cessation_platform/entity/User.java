@@ -18,11 +18,11 @@ import java.util.Set;
 @ToString(exclude = {"role", "userMemberPackages", "smokingStatuses", "quitPlansAsUser", "quitPlansAsCoach",
         "userBadges", "notifications", "posts", "comments", "chatSessionsAsUser",
         "chatSessionsAsCoach", "messagesSent", "ratingsAsMember", "ratingsAsCoach",
-        "paymentTransactions"})
+        "paymentTransactions", "emailVerificationTokens"})
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "users")
-public class Users implements Serializable {
+public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -58,6 +58,12 @@ public class Users implements Serializable {
 
     @Column(name = "status")
     private String status = "active";
+
+    @Column(name = "is_email_verified", nullable = false)
+    private Boolean isEmailVerified = false;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<EmailVerificationToken> emailVerificationTokens = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UserMemberPackage> userMemberPackages = new HashSet<>();
@@ -100,5 +106,4 @@ public class Users implements Serializable {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<PaymentTransaction> paymentTransactions = new HashSet<>();
-
 }

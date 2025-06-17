@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -42,7 +42,7 @@ public class SmokingStatus implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "package_id")
