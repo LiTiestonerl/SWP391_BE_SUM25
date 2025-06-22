@@ -22,7 +22,7 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "users")
-public class Users implements Serializable {
+public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -59,15 +59,14 @@ public class Users implements Serializable {
     @Column(name = "status")
     private String status = "active";
 
-    @Column(name = "is_2fa_enabled", nullable = false)
-    private Boolean is2FaEnabled = false;
-
-    @Column(name = "two_factor_secret")
-    private String twoFactorSecret;
-
     @Column(name = "is_email_verified", nullable = false)
     private Boolean isEmailVerified = false;
 
+    @Column(name = "auth_provider")
+    private String authProvider;
+
+    @Column(name = "provider_id")
+    private String providerId;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<EmailVerificationToken> emailVerificationTokens = new HashSet<>();
@@ -113,14 +112,4 @@ public class Users implements Serializable {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<PaymentTransaction> paymentTransactions = new HashSet<>();
-
-    public void addEmailVerificationToken(EmailVerificationToken token) {
-        this.emailVerificationTokens.add(token);
-        token.setUser(this);
-    }
-
-    public void removeEmailVerificationToken(EmailVerificationToken token) {
-        this.emailVerificationTokens.remove(token);
-        token.setUser(null);
-    }
 }

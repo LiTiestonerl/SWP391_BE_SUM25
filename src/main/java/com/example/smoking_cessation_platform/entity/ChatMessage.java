@@ -42,5 +42,5 @@ public class ChatMessage implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
-    private Users sender;
+    private User sender;
 }

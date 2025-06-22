@@ -39,12 +39,12 @@ public class ChatSession implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coach_id", nullable = false)
-    private Users coach;
+    private User coach;
 
 
     @OneToMany(mappedBy = "chatSession", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

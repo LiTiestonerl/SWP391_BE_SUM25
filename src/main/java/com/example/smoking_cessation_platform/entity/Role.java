@@ -8,7 +8,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.util.HashSet; // Cần import Set và HashSet
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -34,6 +34,6 @@ public class Role implements Serializable {
     private String description;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Users> users = new HashSet<>();
+    private Set<User> users = new HashSet<>();
 
 }

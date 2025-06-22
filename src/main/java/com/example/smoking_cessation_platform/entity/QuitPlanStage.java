@@ -8,8 +8,8 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
-import java.util.HashSet; // Cần import Set và HashSet
+import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity

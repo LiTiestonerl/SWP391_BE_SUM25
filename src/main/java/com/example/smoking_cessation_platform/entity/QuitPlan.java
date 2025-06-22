@@ -8,8 +8,8 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.time.LocalDate; // Dùng LocalDate cho kiểu DATE
-import java.util.HashSet; // Cần import Set và HashSet
+import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -49,12 +49,12 @@ public class QuitPlan implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coach_id")
-    private Users coach;
+    private User coach;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
