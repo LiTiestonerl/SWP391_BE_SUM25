@@ -6,14 +6,14 @@ import com.example.smoking_cessation_platform.entity.EmailVerificationToken;
 import com.example.smoking_cessation_platform.dto.auth.RegisterRequest;
 import com.example.smoking_cessation_platform.dto.auth.EmailVerificationRequest;
 import com.example.smoking_cessation_platform.dto.auth.VerifyEmailOtpRequest;
-import com.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest; // Import GoogleAuthRequest
+import com.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest;
 import com.example.smoking_cessation_platform.repository.EmailVerificationTokenRepository;
 import com.example.smoking_cessation_platform.repository.RoleRepository;
 import com.example.smoking_cessation_platform.repository.UserRepository;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken; // Import GoogleIdToken
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier; // Import GoogleIdTokenVerifier
-import com.google.api.client.http.javanet.NetHttpTransport; // Import NetHttpTransport
-import com.google.api.client.json.gson.GsonFactory; // Import GsonFactory
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -51,10 +51,9 @@ public class AuthService {
     @Value("${google.client.id}")
     private String googleClientId;
 
-    // Khởi tạo GoogleIdTokenVerifier
     private GoogleIdTokenVerifier verifier;
 
-    // Khởi tạo verifier khi AuthService được tạo
+    // Initial verifier when AuthService created
     public AuthService(@Value("${google.client.id}") String googleClientId) {
         this.googleClientId = googleClientId;
         this.verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), GsonFactory.getDefaultInstance())
@@ -215,33 +214,17 @@ public class AuthService {
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            // Nếu người dùng đã tồn tại:
-            // a. Nếu họ đã đăng ký bằng Google trước đó: Coi như ĐĂNG NHẬP
             if ("GOOGLE".equals(user.getAuthProvider()) && googleId.equals(user.getProviderId())) {
-                // Đây là một lần đăng nhập lại bằng Google
-                // Logic đăng nhập sẽ ở đây, trả về JWT của ứng dụng
-                // ... (tạm thời trả về user để hoàn thành luồng đăng ký)
                 return user;
             }
-            // b. Nếu họ đăng ký cục bộ hoặc từ nhà cung cấp khác:
-            //    Bạn có thể cho phép liên kết tài khoản hoặc ném lỗi trùng email
             else if ("LOCAL".equals(user.getAuthProvider())) {
-                // Tùy chọn: Liên kết tài khoản Google vào user hiện có
-//                 user.setAuthProvider("GOOGLE");
-//                 user.setProviderId(googleId);
-//                 userRepository.save(user);
-//                 return user; // Trả về user đã được liên kết
-
-                // Hoặc đơn giản hơn: Yêu cầu đăng nhập bằng phương thức cũ
                 throw new RuntimeException("Email đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng email khác.");
             }
             else {
-                // Email đã tồn tại nhưng từ nhà cung cấp khác
                 throw new RuntimeException("Email đã được đăng ký, vui lòng đăng ký email khác.");
             }
 
         } else {
-            // 2. Nếu người dùng chưa tồn tại: Tạo tài khoản mới
             Role defaultRole = roleRepository.findByRoleName("USER")
                     .orElseGet(() -> {
                         Role newRole = new Role();
@@ -250,23 +233,21 @@ public class AuthService {
                         return roleRepository.save(newRole);
                     });
 
-            // Mật khẩu dummy cho tài khoản OAuth (không có mật khẩu thật)
-            // Có thể dùng một UUID ngẫu nhiên và mã hóa nó, hoặc một giá trị đặc biệt
             String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
             User newUser = User.builder()
                     .userPublicId(UUID.randomUUID().toString())
-                    .userName(userName) // Email thường là userName cho tài khoản OAuth
-                    .password(dummyPassword) // Mật khẩu được tạo ngẫu nhiên hoặc null
+                    .userName(userName)
+                    .password(dummyPassword)
                     .fullName(fullName)
                     .email(email)
-                    .phone(null) // Số điện thoại thường không có từ Google
+                    .phone(null)
                     .registrationDate(LocalDateTime.now())
                     .role(defaultRole)
                     .status("active")
-                    .isEmailVerified(true) // Email đã được Google xác thực
-                    .authProvider("GOOGLE") // Đánh dấu là từ Google
-                    .providerId(googleId) // Lưu Google ID
+                    .isEmailVerified(true)
+                    .authProvider("GOOGLE")
+                    .providerId(googleId)
                     .build();
 
             return userRepository.save(newUser);
