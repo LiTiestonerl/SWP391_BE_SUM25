@@ -6,6 +6,16 @@ import com.example.smoking_cessation_platform.entity.EmailVerificationToken;
 import com.example.smoking_cessation_platform.dto.auth.RegisterRequest;
 import com.example.smoking_cessation_platform.dto.auth.EmailVerificationRequest;
 import com.example.smoking_cessation_platform.dto.auth.VerifyEmailOtpRequest;
+import com.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest;
+import com.example.smoking_cessation_platform.repository.EmailVerificationTokenRepository;
+import com.example.smoking_cessation_platform.repository.RoleRepository;
+import com.example.smoking_cessation_platform.repository.UserRepository;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import com.example.smoking_cessation_platform.repository.EmailVerificationTokenRepository;
 import com.example.smoking_cessation_platform.repository.RoleRepository;
 import com.example.smoking_cessation_platform.repository.UserRepository;
@@ -14,6 +24,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
@@ -38,6 +52,19 @@ public class AuthService {
     private EmailService emailService;
 
     private final Random random = new Random();
+
+    @Value("${google.client.id}")
+    private String googleClientId;
+
+    private GoogleIdTokenVerifier verifier;
+
+    // Initial verifier when AuthService created
+    public AuthService(@Value("${google.client.id}") String googleClientId) {
+        this.googleClientId = googleClientId;
+        this.verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), GsonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+    }
 
     @Transactional
     public User registerUser(RegisterRequest request) {
@@ -72,6 +99,8 @@ public class AuthService {
                 .role(defaultRole)
                 .status("active")
                 .isEmailVerified(false)
+                .authProvider("LOCAL")
+                .providerId(null)
                 .build();
 
         User savedUser = userRepository.save(newUser);
@@ -160,4 +189,73 @@ public class AuthService {
         }
     }
 
+    /**
+     * Phương thức đăng ký bằng Google OAuth
+     *
+     *
+     */
+    @Transactional
+    public User registerOrLoginWithGoogle(GoogleAuthRequest request) {
+        GoogleIdToken idToken;
+        try {
+            idToken = verifier.verify(request.getIdToken());
+        } catch (GeneralSecurityException | IOException e) {
+            throw new RuntimeException("Xác minh Google ID Token thất bại: " + e.getMessage());
+        }
+
+        if (idToken == null) {
+            throw new RuntimeException("Google ID Token không hợp lệ.");
+        }
+
+        GoogleIdToken.Payload payload = idToken.getPayload();
+
+        String email = payload.getEmail();
+        String googleId = payload.getSubject();
+        String fullName = (String) payload.get("name");
+        String userName = email;
+
+
+        Optional<User> existingUser = userRepository.findByEmail(email);
+
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            if ("GOOGLE".equals(user.getAuthProvider()) && googleId.equals(user.getProviderId())) {
+                return user;
+            }
+            else if ("LOCAL".equals(user.getAuthProvider())) {
+                throw new RuntimeException("Email đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng email khác.");
+            }
+            else {
+                throw new RuntimeException("Email đã được đăng ký, vui lòng đăng ký email khác.");
+            }
+
+        } else {
+            Role defaultRole = roleRepository.findByRoleName("USER")
+                    .orElseGet(() -> {
+                        Role newRole = new Role();
+                        newRole.setRoleName("USER");
+                        newRole.setDescription("Người dùng thông thường");
+                        return roleRepository.save(newRole);
+                    });
+
+            String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+
+            User newUser = User.builder()
+                    .userPublicId(UUID.randomUUID().toString())
+                    .userName(userName)
+                    .password(dummyPassword)
+                    .fullName(fullName)
+                    .email(email)
+                    .phone(null)
+                    .registrationDate(LocalDateTime.now())
+                    .role(defaultRole)
+                    .status("active")
+                    .isEmailVerified(true)
+                    .authProvider("GOOGLE")
+                    .providerId(googleId)
+                    .build();
+
+            return userRepository.save(newUser);
+        }
+    }
 }

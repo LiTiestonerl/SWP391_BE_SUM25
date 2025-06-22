@@ -25,6 +25,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/register",
                                 "/api/auth/email/resend-otp",
+                                "/api/auth/email/verify",
+                                "/api/auth/google"
                                 "/api/auth/email/verify"
                         ).permitAll()
                         .anyRequest().authenticated()
