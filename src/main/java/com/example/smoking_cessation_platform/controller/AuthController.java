@@ -1,7 +1,7 @@
 package com.example.smoking_cessation_platform.controller;
 
 
-import kcom.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest;
+import com.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest;
 
 import com.example.smoking_cessation_platform.entity.User;
 import com.example.smoking_cessation_platform.dto.auth.RegisterRequest;
@@ -74,7 +74,6 @@ public class AuthController {
 
     /**
      * API đăng ký & đăng nhập Google OAuth.
-     * 
      */
     @PostMapping("/google")
     public ResponseEntity<?> registerOrLoginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {

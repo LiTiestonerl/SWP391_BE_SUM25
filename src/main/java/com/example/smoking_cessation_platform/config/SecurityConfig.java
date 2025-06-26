@@ -24,18 +24,23 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        // api auth
+                        // Public APIs
                         .requestMatchers("/api/auth/register",
                                 "/api/auth/email/resend-otp",
                                 "/api/auth/email/verify",
-                                "/api/auth/google"
-                                "/api/auth/email/verify"
-                        ).permitAll()
-                        // api memberpackage
-                        .requestMatchers(HttpMethod.GET, "/api/member-packages/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/member-packages").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/member-packages/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/member-packages/**").authenticated()
+                                "/api/auth/google").permitAll()
+
+                        // Member Package APIs (Permit all for testing, needs authentication/roles later)
+                        .requestMatchers("/api/member-packages/**").permitAll()
+
+                        // User Profile APIs (Permit all for testing, needs authentication/roles later)
+                        .requestMatchers("/api/users/public/{userPublicId}").permitAll()
+                        .requestMatchers("/api/users/{userId}").permitAll()
+
+                        // Admin User Management APIs (Permit all for testing, needs ADMIN role later)
+                        .requestMatchers("/api/admin/users/**").permitAll()
+
+                        // Any other API requires authentication
                         .anyRequest().authenticated()
                 );
         return http.build();
