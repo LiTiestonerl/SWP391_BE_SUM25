@@ -1,6 +1,8 @@
 package com.example.smoking_cessation_platform.controller;
 
-import com.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest;
+
+import kcom.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest;
+
 import com.example.smoking_cessation_platform.entity.User;
 import com.example.smoking_cessation_platform.dto.auth.RegisterRequest;
 import com.example.smoking_cessation_platform.dto.auth.EmailVerificationRequest;
@@ -70,11 +72,14 @@ public class AuthController {
         }
     }
 
+    /**
+     * API đăng ký & đăng nhập Google OAuth.
+     * 
+     */
     @PostMapping("/google")
     public ResponseEntity<?> registerOrLoginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
         try {
             User user = authService.registerOrLoginWithGoogle(request);
-            // Trong thực tế, bạn sẽ tạo và trả về JWT của ứng dụng ở đây
             return ResponseEntity.ok("Đăng nhập/Đăng ký Google thành công cho: " + user.getEmail());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -82,4 +87,5 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi đăng nhập/đăng ký bằng Google.");
         }
     }
+
 }

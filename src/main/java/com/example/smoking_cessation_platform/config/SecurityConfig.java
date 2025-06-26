@@ -29,6 +29,7 @@ public class SecurityConfig {
                                 "/api/auth/email/resend-otp",
                                 "/api/auth/email/verify",
                                 "/api/auth/google"
+                                "/api/auth/email/verify"
                         ).permitAll()
                         // api memberpackage
                         .requestMatchers(HttpMethod.GET, "/api/member-packages/**").permitAll()
