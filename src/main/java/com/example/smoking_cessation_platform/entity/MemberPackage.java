@@ -48,4 +48,13 @@ public class MemberPackage implements Serializable {
     @OneToMany(mappedBy = "memberPackage", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UserMemberPackage> userMemberPackages = new HashSet<>();
 
+    public void addUserMemberPackage(UserMemberPackage userMemberPackage) {
+        this.userMemberPackages.add(userMemberPackage);
+        userMemberPackage.setMemberPackage(this);
+    }
+
+    public void removeUserMemberPackage(UserMemberPackage userMemberPackage) {
+        this.userMemberPackages.remove(userMemberPackage);
+        userMemberPackage.setMemberPackage(null);
+    }
 }
