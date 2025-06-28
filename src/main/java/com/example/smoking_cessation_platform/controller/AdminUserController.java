@@ -3,6 +3,7 @@ package com.example.smoking_cessation_platform.controller;
 import com.example.smoking_cessation_platform.dto.user.AdminUserUpdateRequest;
 import com.example.smoking_cessation_platform.dto.user.UserProfileResponse;
 import com.example.smoking_cessation_platform.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin/users")
+@SecurityRequirement(name = "api")
 public class AdminUserController {
 
     @Autowired

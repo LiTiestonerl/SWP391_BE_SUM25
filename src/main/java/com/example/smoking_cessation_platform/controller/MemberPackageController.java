@@ -3,6 +3,7 @@ package com.example.smoking_cessation_platform.controller;
 import com.example.smoking_cessation_platform.dto.memberpackage.MemberPackageRequest;
 import com.example.smoking_cessation_platform.dto.memberpackage.MemberPackageResponse;
 import com.example.smoking_cessation_platform.service.MemberPackageService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/member-packages")
+@SecurityRequirement(name = "api")
 public class MemberPackageController {
 
     @Autowired
