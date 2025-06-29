@@ -40,19 +40,22 @@ public class SecurityConfig {
                                 "/api/auth/email/verify",
                                 "/api/auth/login").permitAll()
 
-                        // Member Package APIs (Permit all for testing, needs authentication/roles later)
-                        .requestMatchers("/api/member-packages/**").permitAll()
+                        // ✅ APIs chỉ dành cho ADMIN
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // User Profile APIs (Permit all for testing, needs authentication/roles later)
-                        .requestMatchers("/api/users/public/{userPublicId}").permitAll()
-                        .requestMatchers("/api/users/{userId}").permitAll()
+                        // ✅ APIs chỉ dành cho DOCTOR
+                        .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
 
-                        // Admin User Management APIs (Permit all for testing, needs ADMIN role later)
-                        .requestMatchers("/api/admin/users/**").permitAll()
+                        // ✅ APIs dành cho USER (bao gồm DOCTOR và ADMIN nếu muốn)
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "DOCTOR", "ADMIN")
 
-                        // Any other API requires authentication
+                        // ✅ APIs dành cho tất cả người dùng đã đăng nhập
+                        .requestMatchers("/api/member-packages/**").authenticated()
+
+                        // ✅ Tất cả API khác bắt buộc phải đăng nhập
                         .anyRequest().authenticated()
                 );
+
         return http.build();
     }
 }
