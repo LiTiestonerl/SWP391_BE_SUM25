@@ -43,10 +43,13 @@ public class PaymentTransaction implements Serializable {
     private String transactionCode;
 
     @Column(name = "status")
-    private String status = "completed";
+    private String status = "pending";
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "txn_ref", nullable = false, unique = true)
+    private String txnRef;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

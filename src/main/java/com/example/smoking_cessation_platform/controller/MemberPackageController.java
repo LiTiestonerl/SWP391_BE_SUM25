@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class MemberPackageController {
      * @param createDto DTO chứa thông tin gói cần tạo.
      * @return ResponseEntity chứa DTO phản hồi hoặc thông báo lỗi.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<MemberPackageResponse> createMemberPackage(@Valid @RequestBody MemberPackageRequest createDto) {
         MemberPackageResponse newPackage = memberPackageService.createMemberPackage(createDto);

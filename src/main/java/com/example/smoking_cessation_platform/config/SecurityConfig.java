@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -27,8 +28,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public APIs
+                        // Cho phép các request swagger, auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 fix lỗi preflight
                         .requestMatchers("/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
@@ -40,19 +43,21 @@ public class SecurityConfig {
                                 "/api/auth/email/verify",
                                 "/api/auth/login").permitAll()
 
-                        // ✅ APIs chỉ dành cho ADMIN
+                        // APIs chỉ dành cho ADMIN
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // ✅ APIs chỉ dành cho DOCTOR
-                        .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
+                        // APIs chỉ dành cho COACH
+                        .requestMatchers("/api/doctor/**").hasRole("COACH")
 
-                        // ✅ APIs dành cho USER (bao gồm DOCTOR và ADMIN nếu muốn)
-                        .requestMatchers("/api/users/**").hasAnyRole("USER", "DOCTOR", "ADMIN")
+                        // APIs dành cho USER (bao gồm Coach và ADMIN nếu muốn)
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "COACH", "ADMIN")
 
-                        // ✅ APIs dành cho tất cả người dùng đã đăng nhập
+                        // APIs cần xác thực
                         .requestMatchers("/api/member-packages/**").authenticated()
+                        .requestMatchers("/api/payment/vnpay-return").permitAll()
+                        .requestMatchers("/api/payment/**").authenticated()
 
-                        // ✅ Tất cả API khác bắt buộc phải đăng nhập
+                        // Tất cả API khác bắt buộc phải đăng nhập
                         .anyRequest().authenticated()
                 );
 

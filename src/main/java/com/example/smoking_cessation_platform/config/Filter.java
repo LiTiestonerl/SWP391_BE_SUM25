@@ -35,7 +35,8 @@ public class Filter extends OncePerRequestFilter {
             "/api/auth/email/resend-otp",
             "/api/auth/google",
             "/api/auth/email/verify",
-            "/api/auth/login"
+            "/api/auth/login",
+            "/api/payment/vnpay-return"
     );
     public boolean checkIsPublicAPI(String uri){
         //uri: api/register
@@ -88,9 +89,11 @@ public class Filter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    public String getToken(HttpServletRequest request){
+    public String getToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        if(authHeader==null) return null;
-        return authHeader.substring(7);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7); // cắt đúng chuỗi "Bearer "
+        }
+        return null;
     }
 }

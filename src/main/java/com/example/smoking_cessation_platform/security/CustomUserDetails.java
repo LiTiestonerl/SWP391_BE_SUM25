@@ -11,7 +11,6 @@ import java.util.Collections;
 public class CustomUserDetails implements UserDetails {
 
     private static final long serialVersionUID = 1L;
-
     private Long userId;
     private String username;
     private String password;
