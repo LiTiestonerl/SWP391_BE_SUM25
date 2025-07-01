@@ -1,9 +1,18 @@
 package com.example.smoking_cessation_platform.repository;
 
 import com.example.smoking_cessation_platform.entity.SmokingStatus;
+import com.example.smoking_cessation_platform.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
-public interface SmokingStatusRepository extends JpaRepository<SmokingStatus, Integer>, JpaSpecificationExecutor<SmokingStatus> {
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface SmokingStatusRepository extends JpaRepository<SmokingStatus, Integer> {
+    List<SmokingStatus> findByUser_UserId(Long userId);
+
+    Optional<SmokingStatus> findByUserAndRecordDate(User user, LocalDate recordDate);
 
 }
