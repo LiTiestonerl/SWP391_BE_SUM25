@@ -43,7 +43,7 @@ public class PaymentTransaction implements Serializable {
     private String transactionCode;
 
     @Column(name = "status")
-    private String status = "pending";
+    private String status = "completed";
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
