@@ -1,8 +1,13 @@
 package com.example.smoking_cessation_platform.config;
 
+import com.example.smoking_cessation_platform.security.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -14,9 +19,25 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(customUserDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
     }
 
     @Bean
@@ -30,19 +51,30 @@ public class SecurityConfig {
                                 "/api/auth/email/verify",
                                 "/api/auth/google").permitAll()
 
-                        // Member Package APIs (Permit all for testing, needs authentication/roles later)
+                        // Member Package APIs (Temporarily permitAll, needs authentication/roles later)
                         .requestMatchers("/api/member-packages/**").permitAll()
 
-                        // User Profile APIs (Permit all for testing, needs authentication/roles later)
-                        .requestMatchers("/api/users/public/{userPublicId}").permitAll()
-                        .requestMatchers("/api/users/{userId}").permitAll()
+                        // User Profile APIs (Temporarily permitAll, needs authentication/roles later)
+                        .requestMatchers(HttpMethod.GET, "/api/users/public/{userPublicId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/{userId}").permitAll()
 
-                        // Admin User Management APIs (Permit all for testing, needs ADMIN role later)
+                        // Admin User Management APIs (Temporarily permitAll, needs ADMIN role later)
                         .requestMatchers("/api/admin/users/**").permitAll()
 
-                        // Any other API requires authentication
+                        // Posts & Comments APIs (Temporarily permitAll, needs authentication/roles later)
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/posts").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/**/comments").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/posts/**/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**/comments/**").permitAll()
+
+                        // Any other API requires authentication by default
                         .anyRequest().authenticated()
                 );
+
         return http.build();
     }
 }
