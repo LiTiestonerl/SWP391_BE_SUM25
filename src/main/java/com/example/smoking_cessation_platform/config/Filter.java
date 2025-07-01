@@ -10,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,8 @@ public class Filter extends OncePerRequestFilter {
     @Autowired
     TokenService tokenService;
 
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
     private final List<String> PUBLIC_APIS = List.of(
             "/swagger-ui/**",
             "/v3/api-docs/**",
@@ -38,17 +41,10 @@ public class Filter extends OncePerRequestFilter {
             "/api/auth/login",
             "/api/payment/vnpay-return"
     );
-    public boolean checkIsPublicAPI(String uri){
-        //uri: api/register
-        //nếu gặp những api trên list public api => cho phép truy cập => luôn true
-        AntPathMatcher pathMatcher = new AntPathMatcher();
-        //check token => false
-        return PUBLIC_APIS.stream().anyMatch(pattern-> pathMatcher.match(pattern, uri));
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        boolean isPublicAPI = checkIsPublicAPI(request.getRequestURI());
+        boolean isPublicAPI = checkIsPublicAPI(request.getRequestURI(), request.getMethod());
 
         if (isPublicAPI) {
             filterChain.doFilter(request, response);
@@ -95,5 +91,31 @@ public class Filter extends OncePerRequestFilter {
             return authHeader.substring(7); // cắt đúng chuỗi "Bearer "
         }
         return null;
+    }
+
+    private boolean checkIsPublicAPI(String uri, String httpMethod) {
+        // 1. OPTIONS (preflight)
+        if (HttpMethod.OPTIONS.matches(httpMethod)) return true;
+
+        // 2. GET bài viết + comment
+        if (HttpMethod.GET.matches(httpMethod)) {
+            if (PATH_MATCHER.match("/api/posts/**", uri) ||
+                    PATH_MATCHER.match("/api/posts/**/comments/**", uri)) {
+                return true;
+            }
+        }
+
+        // 3. Các API public khác
+        if (PATH_MATCHER.match("/swagger-ui/**", uri) ||
+                PATH_MATCHER.match("/v3/api-docs/**", uri) ||
+                PATH_MATCHER.match("/swagger-ui.html", uri) ||
+                PATH_MATCHER.match("/swagger-resources/**", uri) ||
+                PATH_MATCHER.match("/webjars/**", uri) ||
+                PATH_MATCHER.match("/api/auth/**", uri) ||
+                PATH_MATCHER.match("/api/payment/vnpay-return", uri)) {
+            return true;
+        }
+
+        return false;
     }
 }

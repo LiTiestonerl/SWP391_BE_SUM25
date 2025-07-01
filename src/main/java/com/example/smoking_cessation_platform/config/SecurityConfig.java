@@ -55,7 +55,18 @@ public class SecurityConfig {
                                 .requestMatchers("/api/auth/register",
                                         "/api/auth/email/resend-otp",
                                         "/api/auth/email/verify",
-                                        "/api/auth/google").permitAll()
+                                        "/api/auth/google",
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui.html",
+                                        "/swagger-resources/**",
+                                        "/webjars/**",
+                                        "/api/auth/register",
+                                        "/api/auth/email/resend-otp",
+                                        "/api/auth/google",
+                                        "/api/auth/email/verify",
+                                        "/api/auth/login",
+                                        "/api/payment/vnpay-return").permitAll()
 
                                 // APIs chỉ dành cho ADMIN
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

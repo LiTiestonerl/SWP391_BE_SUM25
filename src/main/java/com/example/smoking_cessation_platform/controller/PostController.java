@@ -3,6 +3,7 @@ package com.example.smoking_cessation_platform.controller;
 import com.example.smoking_cessation_platform.dto.post.PostRequest;
 import com.example.smoking_cessation_platform.dto.post.PostResponse;
 import com.example.smoking_cessation_platform.service.PostService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/posts")
+@SecurityRequirement(name = "api")
 public class PostController {
 
     @Autowired
