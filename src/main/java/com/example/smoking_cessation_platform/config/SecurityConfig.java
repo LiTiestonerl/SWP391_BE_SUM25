@@ -45,7 +45,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public APIs
+                        // Public APIs (Authentication related)
                         .requestMatchers("/api/auth/register",
                                 "/api/auth/email/resend-otp",
                                 "/api/auth/email/verify",
@@ -71,9 +71,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/posts/**/comments/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/**/comments/**").permitAll()
 
+                        // SMOKING STATUS APIs
+                        // Temporarily permitAll, needs authentication/ownership checks later
+                        .requestMatchers(HttpMethod.POST, "/api/smoking-status").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/smoking-status/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/smoking-status/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/smoking-status/**").permitAll()
+
                         // Any other API requires authentication by default
                         .anyRequest().authenticated()
                 );
+
+        http.authenticationProvider(authenticationProvider());
 
         return http.build();
     }
