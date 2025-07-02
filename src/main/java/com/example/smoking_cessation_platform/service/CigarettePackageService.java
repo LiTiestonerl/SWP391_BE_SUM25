@@ -40,8 +40,8 @@ public class CigarettePackageService {
 
 
     public void deletePackage(Long id) {
-        if(!cigarettePackageRepository.existsById(id)){
-            throw new ResourceNotFoundException("CigarettePackage",id);
+        if (!cigarettePackageRepository.existsById(id)) {
+            throw new ResourceNotFoundException("CigarettePackage", id);
         }
         cigarettePackageRepository.deleteById(id);
     }
@@ -49,7 +49,7 @@ public class CigarettePackageService {
 
     public CigarettePackage getPackageId(Long fromPackageId) {
         return cigarettePackageRepository.findById(fromPackageId)
-                .orElseThrow(()-> new ResourceNotFoundException("CigarettePackage",fromPackageId));
+                .orElseThrow(() -> new ResourceNotFoundException("CigarettePackage", fromPackageId));
     }
 
     public CigarettePackageDTO updatePackage(Long id, CigarettePackageDTO dto) {

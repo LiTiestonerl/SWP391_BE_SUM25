@@ -148,7 +148,6 @@ public class SmokingStatusService {
     }
 
 
-
     /**
      * Phương thức hỗ trợ chuyển đổi từ Entity SmokingStatus sang SmokingStatusResponseDTO.
      * @param smokingStatus Entity SmokingStatus.

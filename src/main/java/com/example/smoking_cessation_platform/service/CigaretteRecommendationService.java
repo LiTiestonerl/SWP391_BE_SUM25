@@ -1,4 +1,5 @@
 package com.example.smoking_cessation_platform.service;
+
 import com.example.smoking_cessation_platform.dto.CigarettePackage.RecommendationResponse;
 import com.example.smoking_cessation_platform.entity.CigarettePackage;
 import com.example.smoking_cessation_platform.entity.CigaretteRecommendation;
@@ -6,6 +7,7 @@ import com.example.smoking_cessation_platform.mapper.RecommendationMapper;
 import com.example.smoking_cessation_platform.repository.CigaretteRecommendationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
