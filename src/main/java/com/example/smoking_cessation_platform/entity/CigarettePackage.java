@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,9 +45,11 @@ public class CigarettePackage implements Serializable {
     private Set<QuitPlan> quitPlans = new HashSet<>();
 
     @OneToMany(mappedBy = "fromPackage", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "from-package")
     private Set<CigaretteRecommendation> cigaretteRecommendationsFrom = new HashSet<>();
 
     @OneToMany(mappedBy = "toPackage", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "to-package")
     private Set<CigaretteRecommendation> cigaretteRecommendationsTo = new HashSet<>();
 
 }

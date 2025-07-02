@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,9 +32,11 @@ public class CigaretteRecommendation implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_package_id", nullable = false)
+    @JsonBackReference(value = "from-package")
     private CigarettePackage fromPackage;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "to_package_id", nullable = false)
+    @JsonBackReference(value = "to-package")
     private CigarettePackage toPackage;
 }
