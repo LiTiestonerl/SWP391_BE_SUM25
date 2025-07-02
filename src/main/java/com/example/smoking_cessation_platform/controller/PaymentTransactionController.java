@@ -2,10 +2,13 @@ package com.example.smoking_cessation_platform.controller;
 
 import com.example.smoking_cessation_platform.dto.paymentTransaction.PaymentRequest;
 import com.example.smoking_cessation_platform.service.PaymentTransactionService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -25,6 +28,7 @@ public class PaymentTransactionController {
      */
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<?> createPaymentRequest (@RequestBody PaymentRequest paymentRequest){
         String paymentUrl = paymentTransactionService.createPaymentUrl(paymentRequest);
         return ResponseEntity.ok(Map.of("paymentUrl", paymentUrl));
@@ -38,6 +42,8 @@ public class PaymentTransactionController {
      * 3. Trả thông báo thành công/thất bại về phía người dùng.
      */
     @GetMapping("/vnpay-return")
+    @PermitAll
+    @Operation(summary = "VNPay Callback", security = @SecurityRequirement(name = "none"))
     public ResponseEntity<String> handleVnPayReturn(HttpServletRequest request) {
         String resultMessage = paymentTransactionService.processVnPayReturn(request);
         return ResponseEntity.ok(resultMessage);

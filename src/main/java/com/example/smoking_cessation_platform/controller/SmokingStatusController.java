@@ -3,12 +3,13 @@ package com.example.smoking_cessation_platform.controller;
 import com.example.smoking_cessation_platform.dto.smokingstatus.SmokingStatusRequest;
 import com.example.smoking_cessation_platform.dto.smokingstatus.SmokingStatusResponse;
 import com.example.smoking_cessation_platform.service.SmokingStatusService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import com.example.smoking_cessation_platform.security.CustomUserDetails;
 
@@ -17,6 +18,8 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/smoking-status")
+@SecurityRequirement(name = "api")
+@PreAuthorize("hasRole('USER')")
 public class SmokingStatusController {
 
     @Autowired

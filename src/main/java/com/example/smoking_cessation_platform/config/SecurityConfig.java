@@ -50,57 +50,68 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
-                                // Cho phép các request swagger, auth
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 fix lỗi preflig
-                                .requestMatchers("/api/auth/register",
-                                        "/api/auth/email/resend-otp",
-                                        "/api/auth/email/verify",
-                                        "/api/auth/google",
-                                        "/swagger-ui/**",
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui.html",
-                                        "/swagger-resources/**",
-                                        "/webjars/**",
-                                        "/api/auth/register",
-                                        "/api/auth/email/resend-otp",
-                                        "/api/auth/google",
-                                        "/api/auth/email/verify",
-                                        "/api/auth/login",
-                                        "/api/payment/vnpay-return").permitAll()
+                        // Cho phép các request swagger, auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 fix lỗi preflig
+                        .requestMatchers("/api/auth/email/resend-otp",
+                                "/api/auth/email/verify",
+                                "/api/auth/google",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/payment/vnpay-return").permitAll()
 
-                                // APIs chỉ dành cho ADMIN
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // APIs chỉ dành cho ADMIN
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                                // APIs chỉ dành cho COACH
-                                .requestMatchers("/api/doctor/**").hasRole("COACH")
+                        // APIs chỉ dành cho COACH
+                        .requestMatchers("/api/coach/**").hasRole("COACH")
 
-                                // APIs dành cho USER (bao gồm Coach và ADMIN nếu muốn)
-                                .requestMatchers("/api/users/**").hasAnyRole("USER", "COACH", "ADMIN")
+                        // APIs dành cho USER (bao gồm Coach và ADMIN nếu muốn)
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "COACH", "ADMIN")
 
-                                // APIs cần xác thực
-                                .requestMatchers("/api/member-packages/**").authenticated()
-                                .requestMatchers("/api/payment/vnpay-return").permitAll()
-                                .requestMatchers("/api/payment/**").authenticated()
+                        // Chỉ ADMIN được phép tạo / chỉnh sửa / xóa member package
+                        .requestMatchers(HttpMethod.POST, "/api/member-packages").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/member-packages/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/member-packages/*").hasRole("ADMIN")
 
-                                // Public profile (ai cũng xem được)
-                                .requestMatchers(HttpMethod.GET, "/api/users/public/**").permitAll()
+                        // Cho phép tất cả user (authenticated) xem gói
+                        .requestMatchers(HttpMethod.GET, "/api/member-packages/**").authenticated()
 
-                                // Hồ sơ cá nhân (cần đăng nhập)
-                                .requestMatchers(HttpMethod.GET, "/api/users/{userId}").hasAnyRole("USER", "COACH", "ADMIN")
+                        // APIs cần xác thực
+                        .requestMatchers("/api/payment/vnpay-return").permitAll()
+                        .requestMatchers("/api/payment/**").hasRole("USER")
 
-                                // Cho phép đọc bài viết & comment (public)
-                                .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments/**").permitAll()
+                        // Public profile (ai cũng xem được)
+                        .requestMatchers(HttpMethod.GET, "/api/users/public/**").permitAll()
 
-                                 // Các thao tác khác yêu cầu login
-                                .requestMatchers(HttpMethod.POST, "/api/posts").hasAnyRole("USER", "COACH", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
+                        // Hồ sơ cá nhân (cần đăng nhập)
+                        .requestMatchers(HttpMethod.GET, "/api/users/{userId}").hasAnyRole("USER", "COACH", "ADMIN")
 
-                                .requestMatchers(HttpMethod.POST, "/api/posts/**/comments").hasAnyRole("USER", "COACH", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/posts/**/comments/**").hasAnyRole("USER", "COACH", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/posts/**/comments/**").hasAnyRole("USER", "COACH", "ADMIN")
-                                .anyRequest().authenticated()
+                        // Cho phép đọc bài viết & comment (public)
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments/**").permitAll()
+
+                        // Các thao tác khác yêu cầu login
+                        .requestMatchers(HttpMethod.POST, "/api/posts").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/posts/**/comments").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/posts/**/comments/*").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**/comments/*").hasAnyRole("USER", "COACH", "ADMIN")
+
+                        // Chỉ cho phép ROLE_USER thao tác với smoking-status
+                        .requestMatchers(HttpMethod.POST, "/api/smoking-status").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/smoking-status").hasRole("USER")           // GET tất cả
+                        .requestMatchers(HttpMethod.GET, "/api/smoking-status/**").hasRole("USER")         // GET theo ID
+                        .requestMatchers(HttpMethod.PUT, "/api/smoking-status/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/smoking-status/**").hasRole("USER")
+
+                        .anyRequest().authenticated()
                 );
 
         return http.build();

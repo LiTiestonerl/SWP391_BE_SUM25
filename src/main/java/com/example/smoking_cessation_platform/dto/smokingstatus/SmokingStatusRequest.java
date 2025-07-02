@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.dto.smokingstatus;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
@@ -31,6 +32,7 @@ public class SmokingStatusRequest {
     private BigDecimal pricePerPack;
 
     @NotNull(message = "Ngày ghi nhận không được để trống")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate recordDate;
 
 }

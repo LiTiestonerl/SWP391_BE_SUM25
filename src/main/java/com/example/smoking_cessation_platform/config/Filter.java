@@ -100,7 +100,9 @@ public class Filter extends OncePerRequestFilter {
         // 2. GET bài viết + comment
         if (HttpMethod.GET.matches(httpMethod)) {
             if (PATH_MATCHER.match("/api/posts/**", uri) ||
-                    PATH_MATCHER.match("/api/posts/**/comments/**", uri)) {
+                    PATH_MATCHER.match("/api/posts/**/comments/**", uri) ||
+            PATH_MATCHER.match("/api/users/public/**",uri))
+            {
                 return true;
             }
         }

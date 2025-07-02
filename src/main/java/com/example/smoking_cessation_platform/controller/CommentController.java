@@ -3,6 +3,7 @@ package com.example.smoking_cessation_platform.controller;
 import com.example.smoking_cessation_platform.dto.comment.CommentRequest;
 import com.example.smoking_cessation_platform.dto.comment.CommentResponse;
 import com.example.smoking_cessation_platform.service.CommentService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
@@ -19,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/posts/{postId}/comments")
+@SecurityRequirement(name = "api")
 public class CommentController {
 
     @Autowired
@@ -35,7 +37,7 @@ public class CommentController {
      * @return ResponseEntity chứa DTO phản hồi của bình luận đã được tạo.
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'COACH')")
+    @PreAuthorize("hasAnyRole('USER','COACH')")
     public ResponseEntity<CommentResponse> createComment(@PathVariable Integer postId, @Valid @RequestBody CommentRequest createDto, Authentication authentication) {
         Long currentUserId = null;
         if (authentication.getPrincipal() instanceof CustomUserDetails) {
@@ -61,6 +63,7 @@ public class CommentController {
      */
     @GetMapping
     @PermitAll
+    @Operation(summary = "Xem tất cả bình luận", security = @SecurityRequirement(name = "none"))
     public ResponseEntity<List<CommentResponse>> getCommentsByPostId(@PathVariable Integer postId) {
         List<CommentResponse> comments = commentService.getCommentsByPostId(postId);
         return ResponseEntity.ok(comments);
@@ -74,6 +77,7 @@ public class CommentController {
      */
     @GetMapping("/{commentId}")
     @PermitAll
+    @Operation(summary = "Xem 1 bình luận", security = @SecurityRequirement(name = "none"))
     public ResponseEntity<CommentResponse> getCommentById(@PathVariable Integer commentId) {
         Optional<CommentResponse> comment = commentService.getCommentById(commentId);
         return comment.map(ResponseEntity::ok)
@@ -91,7 +95,7 @@ public class CommentController {
      * @return ResponseEntity chứa DTO phản hồi bình luận đã cập nhật hoặc thông báo lỗi.
      */
     @PutMapping("/{commentId}")
-    @PreAuthorize("hasAnyRole('USER','COACH') and @commentSecurity.isOwner(#commentId, authentication.principal.userId)")
+    @PreAuthorize("hasAnyRole('USER','COACH') and @commentSecurity.isOwner(#commentId, principal.userId)")
     public ResponseEntity<CommentResponse> updateComment(@PathVariable Integer commentId, @Valid @RequestBody CommentRequest updateDto, Authentication authentication) {
         Long currentUserId = null;
         if (authentication.getPrincipal() instanceof CustomUserDetails) {
@@ -119,8 +123,11 @@ public class CommentController {
      * @return ResponseEntity chứa NO_CONTENT nếu xóa thành công, hoặc NOT_FOUND.
      */
     @DeleteMapping("/{commentId}")
-    @PreAuthorize("(hasRole('USER')  and @commentSecurity.isOwner(#commentId, authentication.principal.userId))" +
-            " or (hasRole('COACH') and @commentSecurity.isCommentOwnedByUser(#commentId))")
+    @PreAuthorize("(" +
+            "hasRole('USER')  and @commentSecurity.isOwner(#commentId, principal.userId)" +
+            ") or (" +
+            "hasRole('COACH') and @commentSecurity.isCommentOwnedByUser(#commentId)" +
+            ")")
     public ResponseEntity<Void> deleteComment(@PathVariable Integer commentId, Authentication authentication) {
         Long currentUserId = null;
         if (authentication.getPrincipal() instanceof CustomUserDetails) {

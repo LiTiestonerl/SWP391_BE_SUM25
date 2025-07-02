@@ -3,11 +3,13 @@ package com.example.smoking_cessation_platform.controller;
 import com.example.smoking_cessation_platform.dto.post.PostRequest;
 import com.example.smoking_cessation_platform.dto.post.PostResponse;
 import com.example.smoking_cessation_platform.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +35,7 @@ public class PostController {
      * @return ResponseEntity chứa DTO phản hồi của bài viết đã được tạo.
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('USER', 'COACH', 'ADMIN')")
     public ResponseEntity<PostResponse> createPost(@Valid @RequestBody PostRequest createDto) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -58,6 +61,7 @@ public class PostController {
      * @return ResponseEntity chứa danh sách DTO phản hồi bài viết.
      */
     @GetMapping
+    @Operation(summary = "Xem tất cả các bài post", security = @SecurityRequirement(name = "none"))
     public ResponseEntity<List<PostResponse>> getAllPublishedPosts() {
         List<PostResponse> posts = postService.getAllPublishedPosts();
         return ResponseEntity.ok(posts);
@@ -70,6 +74,7 @@ public class PostController {
      * @return ResponseEntity chứa DTO phản hồi bài viết hoặc NOT_FOUND.
      */
     @GetMapping("/{postId}")
+    @Operation(summary = "Xem post theo ID", security = @SecurityRequirement(name = "none"))
     public ResponseEntity<PostResponse> getPostById(@PathVariable Integer postId) {
         Optional<PostResponse> post = postService.getPostById(postId);
         return post.map(ResponseEntity::ok)
@@ -83,6 +88,7 @@ public class PostController {
      * @return ResponseEntity chứa danh sách DTO phản hồi bài viết của người dùng đó.
      */
     @GetMapping("/user/{userId}")
+    @Operation(summary = "Xem post theo ID User", security = @SecurityRequirement(name = "none"))
     public ResponseEntity<List<PostResponse>> getPostsByUserId(@PathVariable Long userId) {
         List<PostResponse> posts = postService.getPostsByUserId(userId);
         return ResponseEntity.ok(posts);
@@ -98,6 +104,7 @@ public class PostController {
      * @return ResponseEntity chứa DTO phản hồi bài viết đã cập nhật hoặc thông báo lỗi.
      */
     @PutMapping("/{postId}")
+    @PreAuthorize("hasRole('ADMIN') or ((hasRole('COACH') or hasRole('USER')) and @postSecurity.isOwner(#postId, principal.userId))")
     public ResponseEntity<PostResponse> updatePost(@PathVariable Integer postId, @Valid @RequestBody PostRequest updateDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long currentUserId = null;
@@ -126,6 +133,7 @@ public class PostController {
      * @return ResponseEntity chứa NO_CONTENT nếu xóa thành công, hoặc NOT_FOUND.
      */
     @DeleteMapping("/{postId}")
+    @PreAuthorize("hasRole('ADMIN') or ((hasRole('COACH') or hasRole('USER')) and @postSecurity.isOwner(#postId, principal.userId))")
     public ResponseEntity<Void> deletePost(@PathVariable Integer postId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long currentUserId = null;
