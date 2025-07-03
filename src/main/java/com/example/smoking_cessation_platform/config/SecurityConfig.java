@@ -1,6 +1,7 @@
 package com.example.smoking_cessation_platform.config;
 
 import com.example.smoking_cessation_platform.security.CustomUserDetailsService;
+import io.swagger.v3.oas.models.PathItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -119,6 +120,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/cigarette-packages").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/cigarette-packages/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/cigarette-packages/*").hasRole("ADMIN")
+
+                        // Achievement Badge (public GET, hạn chế POST/PUT/DELETE)
+                        .requestMatchers(HttpMethod.GET, "/api/achievement_badge").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/achievement_badge/*").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET,"/api/achievement_badge/name/*").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/achievement_badge").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/achievement_badge/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/achievement_badge/*").hasRole("ADMIN")
 
                         // 13️ Mặc định: phải login
                         .anyRequest().authenticated()

@@ -4,6 +4,8 @@ import com.example.smoking_cessation_platform.entity.AchievementBadge;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface AchievementBadgeRepository extends JpaRepository<AchievementBadge, Integer>, JpaSpecificationExecutor<AchievementBadge> {
+import java.util.Optional;
 
+public interface AchievementBadgeRepository extends JpaRepository<AchievementBadge, Integer>, JpaSpecificationExecutor<AchievementBadge> {
+    Optional<AchievementBadge> findByBadgeName(String badgeName);
 }
