@@ -13,6 +13,7 @@ public class AuthResponse {
     private String fullName;
     private String email;
     private String role;
+    private String status;
     private String token;
     private String tokenType = "Bearer"; // ✅ thêm field này
 }

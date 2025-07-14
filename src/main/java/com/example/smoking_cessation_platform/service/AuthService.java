@@ -194,7 +194,7 @@ public class AuthService {
     public User registerOrLoginWithGoogle(GoogleAuthRequest request) {
         GoogleIdToken idToken;
         try {
-            idToken = verifier.verify(request.getIdToken());
+            idToken = verifier.verify(request.getIdToken());  // ✅ Bước xác minh ID Token
         } catch (GeneralSecurityException | IOException e) {
             throw new RuntimeException("Xác minh Google ID Token thất bại: " + e.getMessage());
         }
@@ -203,16 +203,13 @@ public class AuthService {
             throw new RuntimeException("Google ID Token không hợp lệ.");
         }
 
-        GoogleIdToken.Payload payload = idToken.getPayload();
-
+        GoogleIdToken.Payload payload = idToken.getPayload();  // ✅ Trích thông tin từ payload
         String email = payload.getEmail();
         String googleId = payload.getSubject();
         String fullName = (String) payload.get("name");
         String userName = email;
 
-
         Optional<User> existingUser = userRepository.findByEmail(email);
-
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             if ("GOOGLE".equals(user.getAuthProvider()) && googleId.equals(user.getProviderId())) {
@@ -222,7 +219,6 @@ public class AuthService {
             } else {
                 throw new RuntimeException("Email đã được đăng ký, vui lòng đăng ký email khác.");
             }
-
         } else {
             Role defaultRole = roleRepository.findByRoleName("USER")
                     .orElseGet(() -> {
@@ -292,6 +288,7 @@ public class AuthService {
                 user.getFullName(),
                 user.getEmail(),
                 user.getRole().getRoleName(),
+                user.getStatus(),
                 token,
                 "Bearer"    // ✅ thêm dòng này nếu constructor có đủ tham số
         );

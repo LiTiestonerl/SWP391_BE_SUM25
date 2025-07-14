@@ -48,6 +48,14 @@ public class MemberPackage implements Serializable {
     @Column(name = "features_description", columnDefinition = "TEXT")
     private String featuresDescription;
 
+    @ManyToMany
+    @JoinTable(
+            name = "member_package_supported_coach",
+            joinColumns = @JoinColumn(name = "member_package_id"),
+            inverseJoinColumns = @JoinColumn(name = "coach_id")
+    )
+    private Set<User> supportedCoaches = new HashSet<>();
+
     @OneToMany(mappedBy = "memberPackage", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UserMemberPackage> userMemberPackages = new HashSet<>();
 

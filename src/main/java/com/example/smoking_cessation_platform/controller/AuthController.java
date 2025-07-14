@@ -5,6 +5,8 @@ import com.example.smoking_cessation_platform.dto.auth.*;
 
 import com.example.smoking_cessation_platform.entity.User;
 import com.example.smoking_cessation_platform.service.AuthService;
+import com.example.smoking_cessation_platform.service.TokenService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private TokenService tokenService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
@@ -72,6 +77,7 @@ public class AuthController {
     /**
      * API đăng ký & đăng nhập Google OAuth.
      */
+    @Operation(summary = "Đăng nhập hoặc đăng ký bằng Google OAuth2")
     @PostMapping("/google")
     public ResponseEntity<?> registerOrLoginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
         try {
