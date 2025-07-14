@@ -100,9 +100,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
 
-                        .requestMatchers(HttpMethod.POST, "/api/posts/**/comments").hasAnyRole("USER", "COACH", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/posts/**/comments/*").hasAnyRole("USER", "COACH", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**/comments/*").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/posts/{postId}/comments").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/posts/{postId}/comments/**").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/{postId}/comments/**").hasAnyRole("USER", "COACH", "ADMIN")
 
                         // Chỉ cho phép ROLE_USER thao tác với smoking-status
                         .requestMatchers(HttpMethod.POST, "/api/smoking-status").hasRole("USER")
