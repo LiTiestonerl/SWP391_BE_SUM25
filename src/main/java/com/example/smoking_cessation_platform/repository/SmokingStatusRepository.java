@@ -11,8 +11,5 @@ import java.util.Optional;
 
 @Repository
 public interface SmokingStatusRepository extends JpaRepository<SmokingStatus, Integer> {
-    List<SmokingStatus> findByUser_UserId(Long userId);
-
-    Optional<SmokingStatus> findByUserAndRecordDate(User user, LocalDate recordDate);
-
+    SmokingStatus findByUser_UserId(Long userId);
 }

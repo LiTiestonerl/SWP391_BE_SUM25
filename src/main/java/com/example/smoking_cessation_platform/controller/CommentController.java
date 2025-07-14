@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import com.example.smoking_cessation_platform.security.CustomUserDetails;
 
@@ -33,12 +34,12 @@ public class CommentController {
      * API này yêu cầu người dùng đã được xác thực.
      * @param postId ID của bài viết mà bình luận thuộc về.
      * @param createDto DTO chứa thông tin bình luận cần tạo.
-     * @param authentication Đối tượng Authentication từ Spring Security.
      * @return ResponseEntity chứa DTO phản hồi của bình luận đã được tạo.
      */
     @PostMapping
     @PreAuthorize("hasAnyRole('USER','COACH')")
-    public ResponseEntity<CommentResponse> createComment(@PathVariable Integer postId, @Valid @RequestBody CommentRequest createDto, Authentication authentication) {
+    public ResponseEntity<CommentResponse> createComment(@PathVariable Integer postId, @Valid @RequestBody CommentRequest createDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long currentUserId = null;
         if (authentication.getPrincipal() instanceof CustomUserDetails) {
             currentUserId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
