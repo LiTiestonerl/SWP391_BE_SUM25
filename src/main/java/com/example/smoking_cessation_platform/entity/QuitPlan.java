@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.entity;
 
+import com.example.smoking_cessation_platform.Enum.QuitPlanStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,8 +37,12 @@ public class QuitPlan implements Serializable {
     @Column(name = "expected_end_date")
     private LocalDate expectedEndDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status = "active";
+    private QuitPlanStatus status;
+
+    @Column(name = "title", length = 255)
+    private String title;
 
     @Column(name = "reason", columnDefinition = "TEXT")
     private String reason;
@@ -46,6 +52,10 @@ public class QuitPlan implements Serializable {
 
     @Column(name = "custom_notes", columnDefinition = "TEXT")
     private String customNotes;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
