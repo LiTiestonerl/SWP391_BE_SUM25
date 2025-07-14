@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.mapper;
 
+import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageDTO;
 import com.example.smoking_cessation_platform.dto.CigarettePackage.RecommendationResponse;
 import com.example.smoking_cessation_platform.entity.CigaretteRecommendation;
 import org.springframework.stereotype.Component;
@@ -14,16 +15,25 @@ public class RecommendationMapper {
 
         // Dùng builder để tạo đối tượng DTO từ entity
         return RecommendationResponse.builder()
-                .recId(rec.getRecId())   // Gán ID của đề xuất (rec_id)
+                .recId(rec.getRecId()) // Gán ID của bản ghi recommendation
 
-                // Lấy ID của gói thuốc ban đầu (fromPackage là 1 đối tượng CigarettePackage)
+                // Gán ID của gói thuốc gốc (người dùng đang sử dụng)
                 .fromPackageId(rec.getFromPackage().getCigaretteId())
 
-                // Lấy ID của gói thuốc được đề xuất thay thế
+                // Gán ID của gói thuốc được đề xuất thay thế
                 .toPackageId(rec.getToPackage().getCigaretteId())
 
-                // Ghi chú thêm về đề xuất (notes là chuỗi mô tả)
+                // Gán ghi chú mô tả đề xuất (nếu có)
                 .notes(rec.getNotes())
+
+                // ✅ Gán thêm thông tin chi tiết về gói thuốc được đề xuất (toPackage)
+                .toPackageDetail(CigarettePackageDTO.builder()
+                        .cigaretteId(rec.getToPackage().getCigaretteId())
+                        .cigaretteName(rec.getToPackage().getCigaretteName())
+                        .price(rec.getToPackage().getPrice())
+                        .sticksPerPack(rec.getToPackage().getSticksPerPack())
+                        .build()
+                )
 
                 // Hoàn tất build DTO
                 .build();

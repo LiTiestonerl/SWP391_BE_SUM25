@@ -16,4 +16,5 @@ public class CigarettePackageDTO {
     private String cigaretteName;
     private BigDecimal price;
     private Integer sticksPerPack;
+    private Double nicotineMg;
 }

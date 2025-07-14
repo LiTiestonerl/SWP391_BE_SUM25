@@ -14,4 +14,6 @@ public class RecommendationResponse {
     private Long fromPackageId;
     private Long toPackageId;
     private String notes;
+
+    private CigarettePackageDTO toPackageDetail;
 }

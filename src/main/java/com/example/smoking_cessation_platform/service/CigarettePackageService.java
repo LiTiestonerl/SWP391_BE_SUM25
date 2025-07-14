@@ -61,6 +61,7 @@ public class CigarettePackageService {
         pkg.setCigaretteName(dto.getCigaretteName());
         pkg.setPrice(dto.getPrice());
         pkg.setSticksPerPack(dto.getSticksPerPack());
+        pkg.setNicotineMg(dto.getNicotineMg());
 
         // 3. Lưu lại DB
         CigarettePackage saved = cigarettePackageRepository.save(pkg);
@@ -77,5 +78,10 @@ public class CigarettePackageService {
 
         // 3. Chuyển entity thành DTO rồi trả về
         return cigarettePackageMapper.toDTO(pkg);
+    }
+
+    // ✅ Thêm hàm này để dùng ở RecommendationService
+    public List<CigarettePackage> getAllPackages() {
+        return cigarettePackageRepository.findAll();
     }
 }

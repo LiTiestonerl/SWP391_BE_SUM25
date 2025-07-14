@@ -38,6 +38,9 @@ public class CigarettePackage implements Serializable {
     @Column(name = "sticks_per_pack", nullable = false)
     private Integer sticksPerPack;
 
+    @Column(name = "nicotine_mg")
+    private Double nicotineMg;
+
     @OneToMany(mappedBy = "cigarettePackage", fetch = FetchType.LAZY)
     private Set<SmokingStatus> smokingStatuses = new HashSet<>();
 

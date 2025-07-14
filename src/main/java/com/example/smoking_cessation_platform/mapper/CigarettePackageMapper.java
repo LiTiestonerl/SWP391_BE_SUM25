@@ -3,33 +3,31 @@ package com.example.smoking_cessation_platform.mapper;
 import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageDTO;
 import com.example.smoking_cessation_platform.entity.CigarettePackage;
 import org.springframework.stereotype.Component;
-
 @Component
 public class CigarettePackageMapper {
 
-    // Hàm chuyển đổi từ entity -> DTO
+    // ✅ Chuyển từ entity -> DTO (trả về cho client)
     public CigarettePackageDTO toDTO(CigarettePackage pkg) {
-        // Nếu đối tượng truyền vào là null, trả về null để tránh lỗi NullPointerException
-        if (pkg == null) return null;
+        if (pkg == null) return null; // Tránh lỗi null
 
-        // Dùng builder để tạo đối tượng DTO từ entity
         return CigarettePackageDTO.builder()
-                .cigaretteId(pkg.getCigaretteId())       // Lấy ID của gói thuốc
-                .cigaretteName(pkg.getCigaretteName())   // Lấy tên gói thuốc
-                .price(pkg.getPrice())                   // Lấy giá
-                .sticksPerPack(pkg.getSticksPerPack())   // Lấy số điếu trong mỗi gói
-                .build();                                // Kết thúc build DTO
+                .cigaretteId(pkg.getCigaretteId())          // Gán ID
+                .cigaretteName(pkg.getCigaretteName())      // Gán tên
+                .price(pkg.getPrice())                      // Gán giá
+                .sticksPerPack(pkg.getSticksPerPack())      // Gán số điếu
+                .nicotineMg(pkg.getNicotineMg())            // ✅ Gán hàm lượng nicotine (nếu có)
+                .build();
     }
 
-    // Hàm chuyển đổi từ DTO -> entity (dùng khi tạo hoặc cập nhật dữ liệu)
+    // ✅ Chuyển từ DTO -> entity (dùng khi tạo/cập nhật)
     public CigarettePackage toEntity(CigarettePackageDTO dto) {
-        // Tránh lỗi nếu DTO null
-        if (dto == null) return null;
+        if (dto == null) return null; // Tránh null
 
         return CigarettePackage.builder()
-                .cigaretteName(dto.getCigaretteName())   // Gán tên từ DTO
-                .price(dto.getPrice())                   // Gán giá từ DTO
-                .sticksPerPack(dto.getSticksPerPack())   // Gán số điếu mỗi gói từ DTO
-                .build();                                // Kết thúc build entity
+                .cigaretteName(dto.getCigaretteName())      // Gán tên
+                .price(dto.getPrice())                      // Gán giá
+                .sticksPerPack(dto.getSticksPerPack())      // Gán số điếu
+                .nicotineMg(dto.getNicotineMg())            // ✅ Gán nicotine (nếu bạn cho phép cập nhật)
+                .build();
     }
 }
