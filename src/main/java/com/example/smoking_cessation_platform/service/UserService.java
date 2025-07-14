@@ -5,7 +5,11 @@ import com.example.smoking_cessation_platform.entity.Role;
 import com.example.smoking_cessation_platform.dto.user.UserProfileResponse;
 import com.example.smoking_cessation_platform.repository.RoleRepository;
 import com.example.smoking_cessation_platform.repository.UserRepository;
+import com.example.smoking_cessation_platform.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,5 +118,25 @@ public class UserService {
                 .isEmailVerified(user.getIsEmailVerified())
                 .authProvider(user.getAuthProvider())
                 .build();
+    }
+
+    /**
+     * Trả về entity User tương ứng với người đang đăng nhập.
+     * Ném RuntimeException nếu chưa login hoặc user không tồn tại.
+     */
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            throw new RuntimeException("Người dùng chưa đăng nhập");
+        }
+
+        // Giả sử bạn dùng CustomUserDetails đã lưu userId
+        CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
+        Long currentUserId = principal.getUserId();
+
+        return userRepository.findById(currentUserId)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với ID: " + currentUserId));
     }
 }

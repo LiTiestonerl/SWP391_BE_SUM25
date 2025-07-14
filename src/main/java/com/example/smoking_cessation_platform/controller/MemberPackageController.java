@@ -3,10 +3,14 @@ package com.example.smoking_cessation_platform.controller;
 import com.example.smoking_cessation_platform.dto.memberpackage.MemberPackageRequest;
 import com.example.smoking_cessation_platform.dto.memberpackage.MemberPackageResponse;
 import com.example.smoking_cessation_platform.service.MemberPackageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/member-packages")
+@SecurityRequirement(name = "api")
 public class MemberPackageController {
 
     @Autowired
@@ -26,6 +31,7 @@ public class MemberPackageController {
      * @param createDto DTO chứa thông tin gói cần tạo.
      * @return ResponseEntity chứa DTO phản hồi hoặc thông báo lỗi.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<MemberPackageResponse> createMemberPackage(@Valid @RequestBody MemberPackageRequest createDto) {
         MemberPackageResponse newPackage = memberPackageService.createMemberPackage(createDto);
@@ -38,6 +44,8 @@ public class MemberPackageController {
      * @return ResponseEntity chứa danh sách DTO phản hồi.
      */
     @GetMapping
+    @PermitAll
+    @Operation(summary = "Xem danh sách tất cả gói", security = @SecurityRequirement(name = "none"))
     public ResponseEntity<List<MemberPackageResponse>> getAllMemberPackages() {
         List<MemberPackageResponse> packages = memberPackageService.getAllMemberPackages();
         return ResponseEntity.ok(packages);
@@ -50,6 +58,8 @@ public class MemberPackageController {
      * @return ResponseEntity chứa DTO phản hồi hoặc NOT_FOUND nếu không tìm thấy.
      */
     @GetMapping("/{id}")
+    @PermitAll
+    @Operation(summary = "Xem chi tiết 1 gói", security = @SecurityRequirement(name = "none"))
     public ResponseEntity<MemberPackageResponse> getMemberPackageById(@PathVariable Integer id) {
         Optional<MemberPackageResponse> memberPackage = memberPackageService.getMemberPackageById(id);
         return memberPackage.map(ResponseEntity::ok)
@@ -64,6 +74,7 @@ public class MemberPackageController {
      * @param updateDto DTO chứa thông tin cập nhật.
      * @return ResponseEntity chứa DTO phản hồi hoặc NOT_FOUND nếu không tìm thấy.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<MemberPackageResponse> updateMemberPackage(@PathVariable Integer id, @Valid @RequestBody MemberPackageRequest updateDto) {
         Optional<MemberPackageResponse> updatedPackage = memberPackageService.updateMemberPackage(id, updateDto);
@@ -77,6 +88,7 @@ public class MemberPackageController {
      * @param id ID của gói đăng ký cần xóa.
      * @return ResponseEntity chứa NO_CONTENT nếu xóa thành công, hoặc NOT_FOUND nếu không tìm thấy.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMemberPackage(@PathVariable Integer id) {
         boolean deleted = memberPackageService.deleteMemberPackage(id);

@@ -1,12 +1,9 @@
 package com.example.smoking_cessation_platform.service;
 
+import com.example.smoking_cessation_platform.dto.auth.*;
 import com.example.smoking_cessation_platform.entity.Role;
 import com.example.smoking_cessation_platform.entity.User;
 import com.example.smoking_cessation_platform.entity.EmailVerificationToken;
-import com.example.smoking_cessation_platform.dto.auth.RegisterRequest;
-import com.example.smoking_cessation_platform.dto.auth.EmailVerificationRequest;
-import com.example.smoking_cessation_platform.dto.auth.VerifyEmailOtpRequest;
-import com.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest;
 import com.example.smoking_cessation_platform.repository.EmailVerificationTokenRepository;
 import com.example.smoking_cessation_platform.repository.RoleRepository;
 import com.example.smoking_cessation_platform.repository.UserRepository;
@@ -14,12 +11,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import com.example.smoking_cessation_platform.repository.EmailVerificationTokenRepository;
-import com.example.smoking_cessation_platform.repository.RoleRepository;
-import com.example.smoking_cessation_platform.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +22,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -50,6 +43,9 @@ public class AuthService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private TokenService tokenService;
 
     private final Random random = new Random();
 
@@ -221,11 +217,9 @@ public class AuthService {
             User user = existingUser.get();
             if ("GOOGLE".equals(user.getAuthProvider()) && googleId.equals(user.getProviderId())) {
                 return user;
-            }
-            else if ("LOCAL".equals(user.getAuthProvider())) {
+            } else if ("LOCAL".equals(user.getAuthProvider())) {
                 throw new RuntimeException("Email đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng email khác.");
-            }
-            else {
+            } else {
                 throw new RuntimeException("Email đã được đăng ký, vui lòng đăng ký email khác.");
             }
 
@@ -257,5 +251,49 @@ public class AuthService {
 
             return userRepository.save(newUser);
         }
+    }
+
+    /**
+     * Đăng nhập bằng email hoặc username.
+     *  - Kiểm tra tồn tại user
+     *  - So khớp mật khẩu (BCrypt)
+     *  - Kiểm tra trạng thái / xác minh email (nếu cần)
+     *  - Sinh JWT và đóng gói AuthResponse
+     */
+    @Transactional(readOnly = true)
+    public AuthResponse login(@Valid LoginRequest loginRequest) {
+
+        /* 1. Tìm user theo email HOẶC username */
+        User user = userRepository.findByUserName(loginRequest.getLogin())
+                .or(() -> userRepository.findByEmail(loginRequest.getLogin()))
+                .orElseThrow(() ->
+                        new RuntimeException("Không tìm thấy người dùng với định danh: " + loginRequest.getLogin()));
+
+        /* 2. Kiểm tra mật khẩu */
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Mật khẩu không chính xác.");
+        }
+
+        /* 3. (Tuỳ chọn) Kiểm tra trạng thái & email đã xác thực */
+        if (!"active".equalsIgnoreCase(user.getStatus())) {
+            throw new RuntimeException("Tài khoản đã bị khoá hoặc không hoạt động.");
+        }
+        if (Boolean.FALSE.equals(user.getIsEmailVerified())) {
+            throw new RuntimeException("Email chưa được xác thực.");
+        }
+
+        /* 4. Sinh JWT (dùng method generateToken đã có trong AuthService) */
+        String token = tokenService.generateToken(user);
+
+        /* 5. Trả về AuthResponse */
+        return new AuthResponse(
+                user.getUserId(),
+                user.getUserPublicId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole().getRoleName(),
+                token,
+                "Bearer"    // ✅ thêm dòng này nếu constructor có đủ tham số
+        );
     }
 }

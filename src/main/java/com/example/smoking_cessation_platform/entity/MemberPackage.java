@@ -29,19 +29,22 @@ public class MemberPackage implements Serializable {
     @Column(name = "member_package_id", nullable = false)
     private Integer memberPackageId;
 
-    @Column(name = "package_name")
+    @Schema(description = "Tên gói membership", example = "Gói VIP 3 tháng")
+    @Column(name = "package_name", nullable = false)
     private String packageName;
 
-    @Column(name = "price")
+    @Schema(description = "Giá của gói (VND)", example = "150000")
+    @Column(name = "price", nullable = false)
     private BigDecimal price;
 
     /**
      * Tháng
      */
-    @Column(name = "duration")
-    @Schema(description = "Tháng")
+    @Schema(description = "Thời gian hiệu lực của gói (tính theo tháng)", example = "3")
+    @Column(name = "duration", nullable = false)
     private Integer duration;
 
+    @Schema(description = "Mô tả chi tiết tính năng của gói", example = "Hỗ trợ tư vấn riêng, ưu đãi giảm giá")
     @Column(name = "features_description", columnDefinition = "TEXT")
     private String featuresDescription;
 

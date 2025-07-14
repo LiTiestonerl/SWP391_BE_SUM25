@@ -1,12 +1,9 @@
 package com.example.smoking_cessation_platform.controller;
 
 
-import com.example.smoking_cessation_platform.dto.auth.GoogleAuthRequest;
+import com.example.smoking_cessation_platform.dto.auth.*;
 
 import com.example.smoking_cessation_platform.entity.User;
-import com.example.smoking_cessation_platform.dto.auth.RegisterRequest;
-import com.example.smoking_cessation_platform.dto.auth.EmailVerificationRequest;
-import com.example.smoking_cessation_platform.dto.auth.VerifyEmailOtpRequest;
 import com.example.smoking_cessation_platform.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,4 +84,18 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            AuthResponse authResponse = authService.login(loginRequest);
+            return ResponseEntity.ok(authResponse);                         // 200 OK + token
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)            // 400 Bad Request
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)  // 500
+                    .body("Đã xảy ra lỗi khi đăng nhập.");
+        }
+
+    }
 }

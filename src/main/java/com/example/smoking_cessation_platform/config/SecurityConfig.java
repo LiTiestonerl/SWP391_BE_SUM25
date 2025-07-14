@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -21,6 +22,9 @@ public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
+    private Filter filter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -44,45 +48,71 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public APIs (Authentication related)
-                        .requestMatchers("/api/auth/register",
-                                "/api/auth/email/resend-otp",
+                        // Cho phép các request swagger, auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 fix lỗi preflig
+                        .requestMatchers("/api/auth/email/resend-otp",
                                 "/api/auth/email/verify",
-                                "/api/auth/google").permitAll()
+                                "/api/auth/google",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/payment/vnpay-return").permitAll()
 
-                        // Member Package APIs (Temporarily permitAll, needs authentication/roles later)
-                        .requestMatchers("/api/member-packages/**").permitAll()
+                        // APIs chỉ dành cho ADMIN
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // User Profile APIs (Temporarily permitAll, needs authentication/roles later)
-                        .requestMatchers(HttpMethod.GET, "/api/users/public/{userPublicId}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/{userId}").permitAll()
+                        // APIs chỉ dành cho COACH
+                        .requestMatchers("/api/coach/**").hasRole("COACH")
 
-                        // Admin User Management APIs (Temporarily permitAll, needs ADMIN role later)
-                        .requestMatchers("/api/admin/users/**").permitAll()
+                        // APIs dành cho USER (bao gồm Coach và ADMIN nếu muốn)
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "COACH", "ADMIN")
 
-                        // Posts & Comments APIs (Temporarily permitAll, needs authentication/roles later)
+                        // Chỉ ADMIN được phép tạo / chỉnh sửa / xóa member package
+                        .requestMatchers(HttpMethod.POST, "/api/member-packages").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/member-packages/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/member-packages/*").hasRole("ADMIN")
+
+                        // Cho phép tất cả user (authenticated) xem gói
+                        .requestMatchers(HttpMethod.GET, "/api/member-packages/**").authenticated()
+
+                        // APIs cần xác thực
+                        .requestMatchers("/api/payment/vnpay-return").permitAll()
+                        .requestMatchers("/api/payment/**").hasRole("USER")
+
+                        // Public profile (ai cũng xem được)
+                        .requestMatchers(HttpMethod.GET, "/api/users/public/**").permitAll()
+
+                        // Hồ sơ cá nhân (cần đăng nhập)
+                        .requestMatchers(HttpMethod.GET, "/api/users/{userId}").hasAnyRole("USER", "COACH", "ADMIN")
+
+                        // Cho phép đọc bài viết & comment (public)
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/posts").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/posts/**/comments").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/posts/**/comments/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**/comments/**").permitAll()
 
-                        // SMOKING STATUS APIs
-                        // Temporarily permitAll, needs authentication/ownership checks later
-                        .requestMatchers(HttpMethod.POST, "/api/smoking-status").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/smoking-status/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/smoking-status/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/smoking-status/**").permitAll()
+                        // Các thao tác khác yêu cầu login
+                        .requestMatchers(HttpMethod.POST, "/api/posts").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
 
-                        // Any other API requires authentication by default
+                        .requestMatchers(HttpMethod.POST, "/api/posts/{postId}/comments").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/posts/{postId}/comments/**").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/{postId}/comments/**").hasAnyRole("USER", "COACH", "ADMIN")
+
+                        // Chỉ cho phép ROLE_USER thao tác với smoking-status
+                        .requestMatchers(HttpMethod.POST, "/api/smoking-status").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/smoking-status").hasRole("USER")           // GET tất cả
+                        .requestMatchers(HttpMethod.GET, "/api/smoking-status/**").hasRole("USER")         // GET theo ID
+                        .requestMatchers(HttpMethod.PUT, "/api/smoking-status/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/smoking-status/**").hasRole("USER")
+
                         .anyRequest().authenticated()
                 );
-
-        http.authenticationProvider(authenticationProvider());
 
         return http.build();
     }

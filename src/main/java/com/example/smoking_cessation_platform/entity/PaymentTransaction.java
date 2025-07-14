@@ -48,6 +48,9 @@ public class PaymentTransaction implements Serializable {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "txn_ref", nullable = false, unique = true)
+    private String txnRef;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
