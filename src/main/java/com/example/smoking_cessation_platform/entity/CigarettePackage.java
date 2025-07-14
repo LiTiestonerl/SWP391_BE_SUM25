@@ -35,6 +35,15 @@ public class CigarettePackage implements Serializable {
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
+    @Column(name = "brand", nullable = false)
+    private String brand;
+
+    @Column(name = "nicotene_strength", nullable = false)
+    private String nicoteneStrength;
+
+    @Column(name = "flavor", nullable = false)
+    private String flavor;
+
     @Column(name = "sticks_per_pack", nullable = false)
     private Integer sticksPerPack;
 

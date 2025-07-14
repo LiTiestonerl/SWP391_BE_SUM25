@@ -10,6 +10,9 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -27,15 +30,17 @@ public class SmokingStatus implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer statusId;
 
-
     @Column(name = "cigarettes_per_day")
     private Integer cigarettesPerDay;
 
     @Column(name = "frequency")
     private String frequency;
 
-    @Column(name = "price_per_pack")
-    private BigDecimal pricePerPack;
+    @Column(name = "preferred_flavor")
+    private String preferredFlavor; // Tobacco, Menthol, etc.
+
+    @Column(name = "preferred_nicotine_level")
+    private String preferredNicotineLevel; // LOW, MEDIUM, HIGH
 
     @Column(name = "record_date")
     private LocalDate recordDate;
@@ -47,4 +52,7 @@ public class SmokingStatus implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "package_id")
     private CigarettePackage cigarettePackage;
+
+    @OneToMany(mappedBy = "smokingStatus", fetch = FetchType.LAZY)
+    private Set<CigaretteRecommendation> recommendations = new HashSet<>();
 }

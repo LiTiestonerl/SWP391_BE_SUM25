@@ -39,4 +39,9 @@ public class CigaretteRecommendation implements Serializable {
     @JoinColumn(name = "to_package_id", nullable = false)
     @JsonBackReference(value = "to-package")
     private CigarettePackage toPackage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "smoking_status_id")
+    private SmokingStatus smokingStatus;
+
 }

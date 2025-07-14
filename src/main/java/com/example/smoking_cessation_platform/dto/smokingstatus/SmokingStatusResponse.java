@@ -1,13 +1,12 @@
 package com.example.smoking_cessation_platform.dto.smokingstatus;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -17,15 +16,16 @@ public class SmokingStatusResponse {
     private Integer statusId;
     private Integer cigarettesPerDay;
     private String frequency;
-    private Long packageId;
-    private String packageName;
-    private BigDecimal pricePerPack;
+    private String preferredFlavor;
+    private String preferredNicotineLevel;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate recordDate;
 
     private Long userId;
-    private String userName;
-    private String userFullName;
-    private String userEmail;
-    private String userPhone;
-    private LocalDateTime userRegistrationDate;
+
+    private Long cigarettePackageId;
+    private String cigarettePackageName;
+
+
 }

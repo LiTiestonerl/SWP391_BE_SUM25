@@ -1,19 +1,16 @@
 package com.example.smoking_cessation_platform.config;
 
 import com.example.smoking_cessation_platform.security.CustomUserDetailsService;
-import io.swagger.v3.oas.models.PathItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -98,12 +95,15 @@ public class SecurityConfig {
 
                         //  Bài viết & comment (public đọc, authenticated CRUD)
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/*/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST,   "/api/posts").hasAnyRole("USER", "COACH", "ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER", "COACH", "ADMIN")
 
+                        .requestMatchers(HttpMethod.POST, "/api/posts/{postId}/comments").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/posts/{postId}/comments/**").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/{postId}/comments/**").hasAnyRole("USER", "COACH", "ADMIN")
                         .requestMatchers(HttpMethod.POST,   "/api/posts/*/comments").hasAnyRole("USER", "COACH", "ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/posts/*/comments/*").hasAnyRole("USER", "COACH", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/*/comments/*").hasAnyRole("USER", "COACH", "ADMIN")
@@ -156,11 +156,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/ratings/plan/*").hasRole("ADMIN")
                         // 13️ Mặc định: phải login
                         .anyRequest().authenticated()
-                )
-
-                // Stateless nếu bạn dùng JWT
-                .sessionManagement(cfg -> cfg.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
+                );
 
         return http.build();
     }
