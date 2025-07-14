@@ -22,7 +22,9 @@ public class SmokingStatusRequest {
     @PositiveOrZero(message = "Số điếu thuốc phải là số không âm")
     private Integer cigarettesPerDay;
 
-    @Size(max = 255, message = "Tần suất không được vượt quá 255 ký tự")
+    @NotNull(message = "Tần suất không được để trống")
+    @Pattern(regexp = "^(DAILY|OCCASIONALLY|SOCIAL|STRESS)$",
+            message = "Tần suất phải là một trong: DAILY, OCCASIONALLY, SOCIAL, STRESS")
     private String frequency;
 
     private Long packageId;
