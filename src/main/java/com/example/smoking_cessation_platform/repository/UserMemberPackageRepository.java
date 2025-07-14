@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface UserMemberPackageRepository extends JpaRepository<UserMemberPackage, Integer>, JpaSpecificationExecutor<UserMemberPackage> {
 
+    boolean existsByUser_UserIdAndMemberPackage_SupportedCoaches_UserIdAndStatusIgnoreCase(Long userId, Long userId1, String active);
 }

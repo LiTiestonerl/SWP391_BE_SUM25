@@ -15,4 +15,6 @@ public interface SmokingStatusRepository extends JpaRepository<SmokingStatus, In
 
     Optional<SmokingStatus> findByUserAndRecordDate(User user, LocalDate recordDate);
 
+    Optional<SmokingStatus> findTopByUser_UserIdOrderByRecordDateDesc(Long userId);
+
 }
