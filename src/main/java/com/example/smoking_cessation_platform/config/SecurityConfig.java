@@ -55,7 +55,7 @@ public class SecurityConfig {
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
                         // Cho phép các request swagger, auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 fix lỗi preflig
+
                         // 1️ Swagger + Auth (public)
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -70,9 +70,7 @@ public class SecurityConfig {
                                 "/api/auth/google",
                                 "/api/payment/vnpay-return"              // giữ nguyên permitAll
                         ).permitAll()
-
-                        // 2️ Preflight CORS
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 fix lỗi preflig
 
                         // 3️ ADMIN‑only
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -90,7 +88,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,    "/api/member-packages/**").authenticated()
 
                         // 7️ Payment (đã có vnpay-return permitAll ở trên)
-                        .requestMatchers("/api/payment/**").hasRole("USER")
+                        .requestMatchers("/api/payment/**").authenticated()
 
                         // 8️ Public user profile
                         .requestMatchers(HttpMethod.GET, "/api/users/public/**").permitAll()
@@ -129,6 +127,33 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/achievement_badge/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/achievement_badge/*").hasRole("ADMIN")
 
+                        // User Badge (Quản lý huy hiệu đã đạt)
+                        .requestMatchers("/api/user-badges/**").authenticated()
+
+                        // Notification
+                        .requestMatchers("/api/notifications/**").authenticated()
+
+                        // Quit Plan
+                        .requestMatchers(HttpMethod.POST, "/api/quit-plan").hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/quit-plan/{planId}").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/quit-plan/user/{userId}").hasAnyRole("USER", "COACH", "ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/coach").hasAnyRole("COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/user").hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/quit-plan/{planId}/user/{userId}").hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/quit-plan/free").authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/api/quit-plan/user/{userId}/current").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/cancel").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/complete").hasAnyRole("USER", "ADMIN")
+                        //rating
+                        .requestMatchers(HttpMethod.POST, "/api/ratings").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/ratings/coach/*").hasAnyRole( "COACH")
+                        .requestMatchers(HttpMethod.GET, "/api/ratings/member/*").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/ratings/plan/*").hasRole("ADMIN")
                         // 13️ Mặc định: phải login
                         .anyRequest().authenticated()
                 )
