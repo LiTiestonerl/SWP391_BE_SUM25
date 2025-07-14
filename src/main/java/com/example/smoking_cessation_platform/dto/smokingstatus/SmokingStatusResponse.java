@@ -23,9 +23,9 @@ public class SmokingStatusResponse {
     private LocalDate recordDate;
 
     private Long userId;
-    private String userName;
-    private String userFullName;
-    private String userEmail;
-    private String userPhone;
-    private LocalDateTime userRegistrationDate;
+
+    private Long cigarettePackageId;
+    private String cigarettePackageName;
+
+
 }
