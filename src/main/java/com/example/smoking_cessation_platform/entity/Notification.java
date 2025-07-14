@@ -38,6 +38,9 @@ public class Notification implements Serializable {
     @Column(name = "status")
     private String status = "sent";
 
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
