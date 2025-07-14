@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.dto.smokingstatus;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
