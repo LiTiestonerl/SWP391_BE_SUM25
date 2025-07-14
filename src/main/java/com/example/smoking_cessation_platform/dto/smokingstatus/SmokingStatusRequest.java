@@ -27,6 +27,16 @@ public class SmokingStatusRequest {
             message = "Tần suất phải là một trong: DAILY, OCCASIONALLY, SOCIAL, STRESS")
     private String frequency;
 
+    @NotNull(message = "Hương vị ưa thích không được để trống")
+    @Pattern(regexp = "^(MENTHOL|VANILLA|CHERRY|CHOCOLATE|ORIGINAL|MINT)$",
+            message = "Hương vị phải là một trong: MENTHOL, VANILLA, CHERRY, CHOCOLATE, ORIGINAL, MINT")
+    private String preferredFlavor;
+
+    @NotNull(message = "Mức nicotine ưa thích không được để trống")
+    @Pattern(regexp = "^(HIGH|MEDIUM|LOW|ZERO)$",
+            message = "Mức nicotine phải là một trong: HIGH, MEDIUM, LOW, ZERO")
+    private String preferredNicotineLevel;
+
     private Long packageId;
 
     @NotNull(message = "Giá mỗi gói không được để trống")
