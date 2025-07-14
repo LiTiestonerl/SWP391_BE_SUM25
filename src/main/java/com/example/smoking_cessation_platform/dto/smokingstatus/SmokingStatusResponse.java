@@ -17,9 +17,10 @@ public class SmokingStatusResponse {
     private Integer statusId;
     private Integer cigarettesPerDay;
     private String frequency;
-    private Long packageId;
-    private String packageName;
-    private BigDecimal pricePerPack;
+    private String preferredFlavor;
+    private String preferredNicotineLevel;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate recordDate;
 
     private Long userId;
