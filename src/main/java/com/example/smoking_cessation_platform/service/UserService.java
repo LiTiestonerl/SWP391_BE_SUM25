@@ -77,9 +77,15 @@ public class UserService {
                                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy vai trò với ID: " + newRoleId));
                         user.setRole(newRole);
                     }
-                    if (newStatus != null && !newStatus.isEmpty()) {
-                        user.setStatus(newStatus);
+
+                    if (newStatus != null && !newStatus.isBlank()) {
+                        String lowerStatus = newStatus.trim().toLowerCase();
+                        if (!lowerStatus.equals("active") && !lowerStatus.equals("inactive")) {
+                            throw new IllegalArgumentException("Trạng thái không hợp lệ. Chỉ chấp nhận 'active' hoặc 'inactive'.");
+                        }
+                        user.setStatus(lowerStatus);
                     }
+
                     User updatedUser = userRepository.save(user);
                     return convertToUserProfileResponse(updatedUser);
                 });

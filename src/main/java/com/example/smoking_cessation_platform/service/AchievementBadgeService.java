@@ -17,92 +17,91 @@ public class AchievementBadgeService {
 
 
     @Autowired
-    AchievementBadgeRepository achievementBadgeRepository;
+    AchievementBadgeRepository achievementBadgeRepository; // Repository thao tác DB cho bảng AchievementBadge
 
     @Autowired
-    AchievementBadgeMapper achievementBadgeMapper;
+    AchievementBadgeMapper achievementBadgeMapper; // Mapper chuyển đổi giữa DTO và entity
 
     /**
-     * Tạo một huy hiệu mới trong hệ thống.
+     * Tạo một huy hiệu mới.
      *
-     * @param request Dữ liệu huy hiệu từ client.
-     * @return Đối tượng phản hồi chứa thông tin huy hiệu đã tạo.
+     * @param request Dữ liệu từ client (tên, mô tả, tiêu chí).
+     * @return DTO phản hồi sau khi lưu thành công.
      */
     public AchievementBadgeResponse createAchievementBadge(AchievementBadgeRequest request) {
         AchievementBadge badge = achievementBadgeMapper.toEntity(request); // Chuyển DTO thành entity
         badge = achievementBadgeRepository.save(badge); // Lưu vào DB
-        return achievementBadgeMapper.toResponse(badge); // Trả kết quả về client
+        return achievementBadgeMapper.toResponse(badge); // Trả DTO phản hồi
     }
 
     /**
-     * Lấy danh sách tất cả các huy hiệu hiện có trong hệ thống.
+     * Lấy danh sách tất cả huy hiệu chưa bị xóa.
      *
-     * @return Danh sách phản hồi chứa thông tin các huy hiệu.
+     * @return Danh sách DTO các huy hiệu.
      */
     public List<AchievementBadgeResponse> getAllBadge() {
-        return achievementBadgeRepository.findAll().stream()
-                .map(achievementBadgeMapper::toResponse) // Chuyển từng entity thành response
+        return achievementBadgeRepository.findAllByDeletedFalse().stream() // Chỉ lấy badge chưa bị đánh dấu xóa
+                .map(achievementBadgeMapper::toResponse) // Chuyển sang DTO phản hồi
                 .collect(Collectors.toList());
     }
 
     /**
-     * Cập nhật thông tin một huy hiệu theo ID.
+     * Cập nhật thông tin một huy hiệu dựa trên ID.
      *
-     * @param id ID của huy hiệu cần cập nhật.
-     * @param request Dữ liệu mới từ client.
-     * @return Phản hồi chứa thông tin huy hiệu sau khi cập nhật.
-     * @throws ResourceNotFoundException nếu không tìm thấy huy hiệu với ID đã cho.
+     * @param id ID huy hiệu.
+     * @param request Thông tin mới từ client.
+     * @return DTO phản hồi sau khi cập nhật.
+     * @throws ResourceNotFoundException Nếu không tìm thấy huy hiệu.
      */
     public AchievementBadgeResponse updateAchievementBadge(Integer id, AchievementBadgeRequest request) {
-        AchievementBadge badge = achievementBadgeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("AchievementBadge", id));
+        AchievementBadge badge = achievementBadgeRepository.findByBadgeIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("AchievementBadge", id)); // Kiểm tra tồn tại
 
-        // Cập nhật các trường
+        // Cập nhật thông tin từ request
         badge.setBadgeName(request.getBadgeName());
         badge.setDescription(request.getDescription());
         badge.setCriteria(request.getCriteria());
 
-        return achievementBadgeMapper.toResponse(achievementBadgeRepository.save(badge));
+        return achievementBadgeMapper.toResponse(achievementBadgeRepository.save(badge)); // Lưu và trả về kết quả
     }
 
     /**
-     * Lấy thông tin chi tiết của một huy hiệu theo ID.
+     * Lấy chi tiết một huy hiệu theo ID.
      *
-     * @param id ID của huy hiệu cần lấy.
-     * @return Phản hồi chứa thông tin chi tiết huy hiệu.
-     * @throws ResourceNotFoundException nếu không tìm thấy huy hiệu với ID đã cho.
+     * @param id ID huy hiệu.
+     * @return DTO phản hồi chứa thông tin chi tiết.
+     * @throws ResourceNotFoundException Nếu không tồn tại.
      */
     public AchievementBadgeResponse getAchievementBadgeById(Integer id) {
-        AchievementBadge badge = achievementBadgeRepository.findById(id)
+        AchievementBadge badge = achievementBadgeRepository.findByBadgeIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("AchievementBadge", id));
         return achievementBadgeMapper.toResponse(badge);
     }
 
     /**
-     * Xóa một huy hiệu khỏi hệ thống theo ID.
+     * "Xóa mềm" một huy hiệu theo ID (đánh dấu là đã bị xóa thay vì xóa thật).
      *
-     * @param id ID của huy hiệu cần xóa.
-     * @throws ResourceNotFoundException nếu không tìm thấy huy hiệu với ID đã cho.
+     * @param id ID huy hiệu.
+     * @throws ResourceNotFoundException Nếu không tìm thấy.
      */
     public void deleteAchievementBadgeById(Integer id) {
-        AchievementBadge badge = achievementBadgeRepository.findById(id)
+        AchievementBadge badge = achievementBadgeRepository.findByBadgeIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("AchievementBadge", id));
-        achievementBadgeRepository.delete(badge);
+
+        badge.setDeleted(true); // Đánh dấu là đã bị xóa (xóa mềm)
+        achievementBadgeRepository.save(badge); // Lưu cập nhật
     }
 
     /**
-     * Lấy thông tin một huy hiệu dựa theo tên huy hiệu.
+     * Tìm huy hiệu theo tên.
      *
-     * @param name Tên của huy hiệu cần tìm.
-     * @return Đối tượng phản hồi chứa thông tin huy hiệu tương ứng với tên đã cho.
-     * @throws ResourceNotFoundException nếu không tìm thấy huy hiệu với tên tương ứng.
+     * @param name Tên huy hiệu.
+     * @return DTO phản hồi thông tin huy hiệu.
+     * @throws ResourceNotFoundException Nếu không tìm thấy.
      */
     public AchievementBadgeResponse getByBadgeName(String name) {
-        // Tìm kiếm huy hiệu theo tên, nếu không có sẽ ném ra ngoại lệ
-        AchievementBadge badge = achievementBadgeRepository.findByBadgeName(name)
+        AchievementBadge badge = achievementBadgeRepository.findByBadgeNameAndDeletedFalse(name)
                 .orElseThrow(() -> new ResourceNotFoundException("AchievementBadge", name));
-
-        // Chuyển đổi entity sang response DTO để trả về client
         return achievementBadgeMapper.toResponse(badge);
     }
 }

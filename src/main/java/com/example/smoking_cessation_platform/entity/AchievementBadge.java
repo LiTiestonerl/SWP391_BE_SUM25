@@ -36,6 +36,12 @@ public class AchievementBadge implements Serializable {
     @Column(name = "criteria")
     private String criteria;
 
+    @Column(name = "badge_type", nullable = false)
+    private String badgeType;
+
+    @Column(name = "deleted")
+    private boolean deleted = false;
+
     @OneToMany(mappedBy = "badge", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UserBadge> userBadges = new HashSet<>();
 
