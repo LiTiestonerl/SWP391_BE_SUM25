@@ -293,4 +293,34 @@ public class AuthService {
                 "Bearer"    // ✅ thêm dòng này nếu constructor có đủ tham số
         );
     }
+
+    public void sendForgotPasswordEmail(EmailVerificationRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại."));
+        // Gửi mã OTP xác thực
+        sendEmailVerificationOtp(user);
+    }
+
+    @Transactional
+    public boolean resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại."));
+        // Tìm mã OTP
+        EmailVerificationToken token = emailVerificationTokenRepository
+                .findByUserAndOtpCodeAndExpiresAtAfterAndConfirmedAtIsNull(
+                user, request.getOtp(), LocalDateTime.now())
+                .orElse(null);
+        if (token != null) {
+            // Cập nhật mật khẩu mới
+            String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+            user.setPassword(encodedPassword);
+            userRepository.save(user);
+            // Đánh dấu mã OTP là đã xác thực
+            token.setConfirmedAt(LocalDateTime.now());
+            emailVerificationTokenRepository.save(token);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

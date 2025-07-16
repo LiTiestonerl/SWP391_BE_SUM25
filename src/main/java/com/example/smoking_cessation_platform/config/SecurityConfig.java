@@ -65,7 +65,9 @@ public class SecurityConfig {
                                 "/api/auth/email/resend-otp",
                                 "/api/auth/email/verify",
                                 "/api/auth/google",
-                                "/api/payment/vnpay-return"              // giữ nguyên permitAll
+                                "/api/payment/vnpay-return",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password"// giữ nguyên permitAll
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 fix lỗi preflig
 

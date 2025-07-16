@@ -104,4 +104,41 @@ public class AuthController {
         }
 
     }
+
+    /**
+     * API để yêu cầu gửi mã OTP quên mật khẩu.
+     * Người dùng cung cấp email.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody EmailVerificationRequest request) {
+        try {
+            authService.sendForgotPasswordEmail(request);
+            return ResponseEntity.ok("Mã OTP đã được gửi đến email: " + request.getEmail());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi gửi mã OTP quên mật khẩu.");
+        }
+    }
+
+    /**
+     * API để đặt lại mật khẩu.
+     * Người dùng cung cấp mã OTP và mật khẩu mới.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            boolean success = authService.resetPassword(request);
+            if (success) {
+                return ResponseEntity.ok("Mật khẩu đã được đặt lại thành công.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mã OTP không hợp lệ hoặc đã hết hạn.");
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi đặt lại mật khẩu.");
+        }
+    }
+
 }
