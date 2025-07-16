@@ -113,47 +113,55 @@ public class SecurityConfig {
 
 
                         // Gói thuốc (public GET, hạn chế POST/PUT/DELETE)
-                        .requestMatchers(HttpMethod.GET, "/api/cigarette-packages/*/recommendations").hasAnyRole("USER", "COACH", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/cigarette-packages/**").hasAnyRole("USER", "COACH", "ADMIN")
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-packages/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/cigarette-packages").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/cigarette-packages").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/cigarette-packages/*").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/cigarette-packages/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/cigarette-packages/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cigarette-packages/{id}").hasRole("ADMIN")
 
-                        // Achievement Badge (public GET, hạn chế POST/PUT/DELETE)
-                        .requestMatchers(HttpMethod.GET, "/api/achievement_badge").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/achievement_badge/*").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET,"/api/achievement_badge/name/*").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/achievement_badge").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/achievement_badge/*").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/achievement_badge/*").hasRole("ADMIN")
+                        //AchievementBadge
+                        .requestMatchers(HttpMethod.POST, "/api/achievement-badge").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/achievement-badge").hasAnyRole("USER","ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/achievement-badge/{id}").hasAnyRole("USER","ADMIN")
+                        .requestMatchers(HttpMethod.GET,"/api/achievement-badge/name/{name}").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/achievement-badge/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/achievement-badge/{id}").hasRole("ADMIN")
 
-                        // User Badge (Quản lý huy hiệu đã đạt)
-                        .requestMatchers("/api/user-badges/**").authenticated()
+                        //UserBadge
+                        .requestMatchers("/api/user_badge/**").hasRole("USER")
 
-                        // Notification
-                        .requestMatchers("/api/notifications/**").authenticated()
+                        //Notification
+                        .requestMatchers(HttpMethod.POST, "/api/notifications").hasAnyRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/me").hasAnyRole("USER")
 
-                        // Quit Plan
-                        .requestMatchers(HttpMethod.POST, "/api/quit-plan").hasAnyRole("USER", "ADMIN")
+                        //Rating
+                        .requestMatchers(HttpMethod.POST,"/api/rating").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/rating/coach/{coachId}").hasRole("COACH")
+                        .requestMatchers(HttpMethod.GET, "/api/rating/member/{memberId}").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/rating/plan/{planId}").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.GET, "/api/quit-plan/{planId}").hasAnyRole("USER", "COACH", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/quit-plan/user/{userId}").hasAnyRole("USER", "COACH", "ADMIN")
-
-                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/coach").hasAnyRole("COACH", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/user").hasAnyRole("USER", "ADMIN")
-
-                        .requestMatchers(HttpMethod.DELETE, "/api/quit-plan/{planId}/user/{userId}").hasAnyRole("USER", "ADMIN")
-
+                        //QuitPlan
+                        .requestMatchers(HttpMethod.GET,"/api/quit-plan/{planId}").hasAnyRole("USER","COACH","ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/quit-plan/user/{userId}").hasAnyRole("USER","COACH")
                         .requestMatchers(HttpMethod.GET, "/api/quit-plan/free").authenticated()
+                        .requestMatchers(HttpMethod.GET,"/api/quit-plan/user/{userId}/current").hasRole("USER")
 
-                        .requestMatchers(HttpMethod.GET, "/api/quit-plan/user/{userId}/current").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/cancel").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/complete").hasAnyRole("USER", "ADMIN")
-                        //rating
-                        .requestMatchers(HttpMethod.POST, "/api/ratings").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/api/ratings/coach/*").hasAnyRole( "COACH")
-                        .requestMatchers(HttpMethod.GET, "/api/ratings/member/*").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/api/ratings/plan/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/quit-plan").hasAnyRole("USER","ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/coach").hasRole("COACH")
+                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/user").hasAnyRole("USER","ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/quit-plan/{planId}/cancel").hasRole("USER")
+                        .requestMatchers(HttpMethod.PUT,"/api/quit-plan/{planId}/complete").authenticated()
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/quit-plan/{planId}/user/{userId}").hasAnyRole("USER","ADMIN")
+
+                        // Smoking Status endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/smoking-status").hasRole("USER")
+                        .requestMatchers(HttpMethod.PUT, "/api/smoking-status").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/smoking-status").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/smoking-status").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/smoking-status/{userId}").hasRole("ADMIN")
+
                         // 13️ Mặc định: phải login
                         .anyRequest().authenticated()
                 );
