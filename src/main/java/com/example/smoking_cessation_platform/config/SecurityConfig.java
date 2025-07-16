@@ -110,9 +110,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,    "/api/posts/*/comments/*").hasAnyRole("USER", "COACH", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/*/comments/*").hasAnyRole("USER", "COACH", "ADMIN")
 
-                        // 11️ Smoking‑status (ROLE_USER)
-                        .requestMatchers("/api/smoking-status/**").hasRole("USER")
-
 
                         // Gói thuốc (public GET, hạn chế POST/PUT/DELETE)
                         .requestMatchers(HttpMethod.GET,"/api/cigarette-packages/{id}").authenticated()
