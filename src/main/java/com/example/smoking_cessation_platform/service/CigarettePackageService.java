@@ -21,7 +21,7 @@ public class CigarettePackageService {
 
     public List<CigarettePackageDTO> getAllPackage() {
         return cigarettePackageRepository.findAll().stream()
-                .map(cigarettePackageMapper::toDTO)
+                .map(cigarettePackageMapper:: toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -60,6 +60,9 @@ public class CigarettePackageService {
         // 2. Ghi đè các thuộc tính (full‑update theo chuẩn PUT)
         pkg.setCigaretteName(dto.getCigaretteName());
         pkg.setPrice(dto.getPrice());
+        pkg.setBrand(dto.getBrand());
+        pkg.setNicoteneStrength(dto.getNicoteneStrength());
+        pkg.setFlavor(dto.getFlavor());
         pkg.setSticksPerPack(dto.getSticksPerPack());
         pkg.setNicotineMg(dto.getNicotineMg());
 

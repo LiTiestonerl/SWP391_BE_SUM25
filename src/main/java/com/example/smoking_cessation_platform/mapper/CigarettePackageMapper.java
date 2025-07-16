@@ -7,27 +7,31 @@ import org.springframework.stereotype.Component;
 public class CigarettePackageMapper {
 
     // ✅ Chuyển từ entity -> DTO (trả về cho client)
-    public CigarettePackageDTO toDTO(CigarettePackage pkg) {
-        if (pkg == null) return null; // Tránh lỗi null
-
+    public  CigarettePackageDTO toDTO(CigarettePackage entity) {
+        if (entity == null) return null;
         return CigarettePackageDTO.builder()
-                .cigaretteId(pkg.getCigaretteId())          // Gán ID
-                .cigaretteName(pkg.getCigaretteName())      // Gán tên
-                .price(pkg.getPrice())                      // Gán giá
-                .sticksPerPack(pkg.getSticksPerPack())      // Gán số điếu
-                .nicotineMg(pkg.getNicotineMg())            // ✅ Gán hàm lượng nicotine (nếu có)
+                .cigaretteId(entity.getCigaretteId())
+                .cigaretteName(entity.getCigaretteName())
+                .price(entity.getPrice())
+                .brand(entity.getBrand())
+                .nicoteneStrength(entity.getNicoteneStrength())
+                .flavor(entity.getFlavor())
+                .sticksPerPack(entity.getSticksPerPack())
+                .nicotineMg(entity.getNicotineMg())
                 .build();
     }
 
-    // ✅ Chuyển từ DTO -> entity (dùng khi tạo/cập nhật)
-    public CigarettePackage toEntity(CigarettePackageDTO dto) {
-        if (dto == null) return null; // Tránh null
-
+    public  CigarettePackage toEntity(CigarettePackageDTO dto) {
+        if (dto == null) return null;
         return CigarettePackage.builder()
-                .cigaretteName(dto.getCigaretteName())      // Gán tên
-                .price(dto.getPrice())                      // Gán giá
-                .sticksPerPack(dto.getSticksPerPack())      // Gán số điếu
-                .nicotineMg(dto.getNicotineMg())            // ✅ Gán nicotine (nếu bạn cho phép cập nhật)
+                .cigaretteId(dto.getCigaretteId()) // Có thể bỏ dòng này nếu dùng để tạo mới
+                .cigaretteName(dto.getCigaretteName())
+                .price(dto.getPrice())
+                .brand(dto.getBrand())
+                .nicoteneStrength(dto.getNicoteneStrength())
+                .flavor(dto.getFlavor())
+                .sticksPerPack(dto.getSticksPerPack())
+                .nicotineMg(dto.getNicotineMg())
                 .build();
     }
 }

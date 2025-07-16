@@ -12,9 +12,12 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CigarettePackageDTO {
-    private Long cigaretteId;
+    private Long cigaretteId;             // Cho response: khi trả về dữ liệu đã có ID
     private String cigaretteName;
     private BigDecimal price;
+    private String brand;
+    private String nicoteneStrength;
+    private String flavor;
     private Integer sticksPerPack;
     private Double nicotineMg;
 }
