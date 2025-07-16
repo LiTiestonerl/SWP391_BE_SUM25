@@ -14,4 +14,5 @@ public class AchievementBadgeResponse {
     private String badgeName;
     private String description;
     private String criteria;
+    private String badgeType;
 }

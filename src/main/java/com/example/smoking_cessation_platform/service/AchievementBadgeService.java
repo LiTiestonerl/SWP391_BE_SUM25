@@ -61,6 +61,8 @@ public class AchievementBadgeService {
         badge.setBadgeName(request.getBadgeName());
         badge.setDescription(request.getDescription());
         badge.setCriteria(request.getCriteria());
+        badge.setBadgeType(request.getBadgeType());
+
 
         return achievementBadgeMapper.toResponse(achievementBadgeRepository.save(badge)); // Lưu và trả về kết quả
     }

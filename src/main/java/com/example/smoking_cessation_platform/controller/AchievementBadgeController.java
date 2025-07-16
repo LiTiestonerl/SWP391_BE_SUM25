@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/achievement_badge")
+@RequestMapping("/api/achievement-badge")
 @SecurityRequirement(name = "api")
 public class AchievementBadgeController {
 
