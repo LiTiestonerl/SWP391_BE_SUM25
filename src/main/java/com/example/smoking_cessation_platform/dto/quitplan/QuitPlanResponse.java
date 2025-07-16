@@ -21,9 +21,16 @@ public class QuitPlanResponse {
     private String reason;
     private String stagesDescription;
     private String customNotes;
-    private Long userId; // ID của người dùng
-    private Long coachId; // ID của huấn luyện viên
-    private Integer recommendedPackageId; // ID của gói thuốc lá
-    private Set<QuitPlanStageResponse> quitPlanStages; // Danh sách các giai đoạn
-    private List<CigarettePackageDTO> nicotineSuggestions;
+
+    private Long userId;   // ID người dùng
+    private Long coachId;  // ID huấn luyện viên
+    private Integer recommendedPackageId;  // ID gói thuốc lá khuyến nghị
+
+    private Set<QuitPlanStageResponse> quitPlanStages;  // Danh sách giai đoạn
+    private List<CigarettePackageDTO> nicotineSuggestions;  // Danh sách gợi ý nicotine
+
+    // 🔽 Các trường mở rộng để hiển thị lịch sử gợi ý (nếu có)
+    private Long fromPackageId;        // Từ gói nào
+    private Long toPackageId;          // Gợi ý sang gói nào
+    private String recommendationNotes; // Ghi chú (nếu hệ thống tự động gợi ý)
 }

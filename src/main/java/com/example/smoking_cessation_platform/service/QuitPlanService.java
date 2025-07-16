@@ -2,11 +2,14 @@ package com.example.smoking_cessation_platform.service;
 
 import com.example.smoking_cessation_platform.Enum.QuitPlanStatus;
 import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageDTO;
+import com.example.smoking_cessation_platform.dto.CigarettePackage.RecommendationResponse;
 import com.example.smoking_cessation_platform.dto.quitplan.QuitPlanRequest;
 import com.example.smoking_cessation_platform.dto.quitplan.QuitPlanResponse;
 import com.example.smoking_cessation_platform.entity.*;
+import com.example.smoking_cessation_platform.exception.BusinessException;
 import com.example.smoking_cessation_platform.exception.ResourceNotFoundException;
 import com.example.smoking_cessation_platform.mapper.QuitPlanMapper;
+import com.example.smoking_cessation_platform.mapper.RecommendationMapper;
 import com.example.smoking_cessation_platform.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +20,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +50,8 @@ public class QuitPlanService {
     private SmokingStatusRepository smokingStatusRepository;
     @Autowired
     private CigaretteRecommendationService cigaretteRecommendationService;
+    @Autowired
+    private CigaretteRecommendationRepository cigaretteRecommendationRepository;
 
     /**
      * Tạo mới một kế hoạch cai thuốc cho người dùng.
@@ -57,59 +59,81 @@ public class QuitPlanService {
      */
     @Transactional
     public QuitPlanResponse createPlan(QuitPlanRequest request) {
-        // Ánh xạ request thành thực thể QuitPlan và set trạng thái ban đầu là IN_PROGRESS
+
+        // 1. Lấy thông tin user
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", request.getUserId()));
+
+        // 2. Kiểm tra nếu user KHÔNG phải ADMIN và đã có kế hoạch đang hoạt động
+        if (!"ADMIN".equalsIgnoreCase(user.getRole().getRoleName())) {
+            quitPlanRepository.findFirstByUser_UserIdAndStatus(request.getUserId(), QuitPlanStatus.IN_PROGRESS)
+                    .ifPresent(p -> {
+                        throw new BusinessException("Bạn đã có một kế hoạch đang hoạt động.");
+                    });
+        }
+
+        // 3. Ánh xạ request thành entity và thiết lập thông tin ban đầu
         QuitPlan plan = quitPlanMapper.toEntity(request);
         plan.setStatus(QuitPlanStatus.IN_PROGRESS);
         plan.setTitle(request.getTitle());
-        plan = quitPlanRepository.save(plan);
+        plan.setUser(user);
 
-        // ✅ Lấy thông tin hút thuốc gần nhất của người dùng từ bảng SmokingStatus
+        // 4. Nếu là ADMIN thì có thể gán coach
+        if ("ADMIN".equalsIgnoreCase(user.getRole().getRoleName()) && request.getCoachId() != null) {
+            User coach = userRepository.findById(request.getCoachId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Coach", request.getCoachId()));
+            plan.setCoach(coach);
+        }
+
+        // 5. Lấy thông tin hút thuốc mới nhất của user
         SmokingStatus smokingStatus = smokingStatusRepository
                 .findTopByUser_UserIdOrderByRecordDateDesc(request.getUserId())
                 .orElse(null);
 
-        // Nếu có dữ liệu thì lấy số điếu/ngày, ngược lại gán mặc định là 10 điếu/ngày
-        int initialCigarettesPerDay = (smokingStatus != null && smokingStatus.getCigarettesPerDay() != null)
-                ? smokingStatus.getCigarettesPerDay()
-                : 10;
+        // 6. Gán gói được đề xuất từ cigarette_recommendation
+        List<CigarettePackageDTO> suggestions = new ArrayList<>();
+        if (smokingStatus != null && smokingStatus.getCigarettePackage() != null) {
+            List<CigaretteRecommendation> recs = cigaretteRecommendationRepository
+                    .findByFromPackage(smokingStatus.getCigarettePackage());
 
-        // Lấy giá mỗi bao thuốc (để sau này tính tiền tiết kiệm), nếu không có thì mặc định là 0
-        BigDecimal pricePerPack = (smokingStatus != null) ? smokingStatus.getPricePerPack() : BigDecimal.ZERO;
+            if (!recs.isEmpty()) {
+                CigarettePackage recommended = recs.get(0).getToPackage();
+                plan.setRecommendedPackage(recommended);
 
-        // ✅ Tạo các stage và progress tương ứng theo kế hoạch
-        List<QuitPlanStage> stages = generateStages(plan, initialCigarettesPerDay, pricePerPack);
-
-        // Lưu stage và progress vào database
-        for (QuitPlanStage stage : stages) {
-            stage.setQuitPlan(plan);
-            quitPlanStageRepository.save(stage);
-
-            for (QuitProgress progress : stage.getQuitProgresses()) {
-                progress.setQuitPlanStage(stage);
-                quitProgressRepository.save(progress);
+                // Gợi ý dạng DTO
+                suggestions = recs.stream()
+                        .map(RecommendationMapper::toPackageDTO)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
             }
         }
 
-        // Gán các stage cho kế hoạch để trả response
-        plan.setQuitPlanStages(new HashSet<>(stages));
+        // 7. Lưu kế hoạch
+        plan = quitPlanRepository.save(plan);
 
-        // 6. Trả về response
-        QuitPlanResponse response = quitPlanMapper.toResponse(plan);
+        // 8. Tạo danh sách stage và progress
+        int cigarettesPerDay = smokingStatus != null && smokingStatus.getCigarettesPerDay() != null
+                ? smokingStatus.getCigarettesPerDay()
+                : 10;
 
-        // ✅ 7. Gợi ý gói thuốc có nicotine thấp hơn nếu có thông tin gói hiện tại
-        if (smokingStatus != null && smokingStatus.getCigarettePackage() != null) {
-            Long currentPackageId = smokingStatus.getCigarettePackage().getCigaretteId();
+        BigDecimal pricePerPack = (smokingStatus != null && smokingStatus.getCigarettePackage() != null)
+                ? Optional.ofNullable(smokingStatus.getCigarettePackage().getPrice()).orElse(BigDecimal.ZERO)
+                : BigDecimal.ZERO;
 
-            // Gọi service gợi ý
-            List<CigarettePackageDTO> suggestedPackages =
-                    cigaretteRecommendationService.suggestLowerNicotinePackages(currentPackageId);
+        List<QuitPlanStage> stages = generateStages(plan, cigarettesPerDay, pricePerPack);
+        quitPlanStageRepository.saveAll(stages);
 
-            // Gán vào response (cần khai báo trường nicotineSuggestions trong DTO)
-            response.setNicotineSuggestions(suggestedPackages);
+        for (QuitPlanStage stage : stages) {
+            quitProgressRepository.saveAll(stage.getQuitProgresses());
         }
 
-        return response;
+        plan.setQuitPlanStages(new HashSet<>(stages));
+
+        // 9. Trả về response
+        return quitPlanMapper.toResponse(plan, suggestions);
     }
+
+
 
     /**
      * Tự động chia kế hoạch thành nhiều giai đoạn (stage), mỗi giai đoạn dài ~7 ngày.
@@ -143,8 +167,8 @@ public class QuitPlanService {
             stage.setNotes("Giai đoạn " + (i + 1));
             stage.setQuitPlan(quitPlan);
 
-            // Tạo progress theo từng ngày trong giai đoạn
-            stage.setQuitProgresses(new HashSet<>(generateProgresses(stageStart, stageEnd, pricePerPack)));
+            // Tạo progress theo từng ngày trong giai đoạn và truyền stage vào
+            stage.setQuitProgresses(new HashSet<>(generateProgresses(stageStart, stageEnd, pricePerPack, stage)));
 
             stages.add(stage);
         }
@@ -156,7 +180,7 @@ public class QuitPlanService {
      * Tạo các bản ghi QuitProgress cho mỗi ngày từ startDate đến endDate.
      * Các giá trị mặc định sẽ là 0 và status là “Chưa cập nhật”.
      */
-    private List<QuitProgress> generateProgresses(LocalDate startDate, LocalDate endDate, BigDecimal pricePerPack) {
+    private List<QuitProgress> generateProgresses(LocalDate startDate, LocalDate endDate, BigDecimal pricePerPack, QuitPlanStage stage) {
         List<QuitProgress> progresses = new ArrayList<>();
         LocalDate current = startDate;
 
@@ -173,6 +197,7 @@ public class QuitPlanService {
             progress.setMoneySaved(BigDecimal.ZERO); // sẽ cập nhật sau
             progress.setSmokingFreeDays(0); // chưa có ngày nào không hút
             progress.setHealthStatus("Chưa cập nhật"); // người dùng sẽ cập nhật sau
+            progress.setQuitPlanStage(stage); // Thiết lập stage cho progress
 
             progresses.add(progress);
             current = current.plusDays(1);
@@ -180,6 +205,7 @@ public class QuitPlanService {
 
         return progresses;
     }
+
 
     // 2. Lấy chi tiết kế hoạch (nếu có coach thì kiểm tra user đã mua gói phù hợp chưa)
     public QuitPlanResponse getPlanById(Integer planId) {
