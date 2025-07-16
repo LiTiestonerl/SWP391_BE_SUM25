@@ -111,22 +111,5 @@ public class CigarettePackageController {
         cigarettePackageService.deletePackage(id);
         return ResponseEntity.noContent().build();
     }
-
-    /**
-     * API lấy danh sách gợi ý gói thuốc phù hợp (nhẹ hơn) cho một gói thuốc hiện tại.
-     * <p>
-     * Yêu cầu: <code>GET /api/cigarette-packages/{id}/recommendations</code>
-     *
-     * @param id ID gói thuốc gốc.
-     * @return ResponseEntity chứa danh sách {@link RecommendationResponse}.
-     */
-    @GetMapping("/{id}/recommendations")
-    @Operation(
-            summary = "Lấy danh sách gợi ý cho gói thuốc hiện tại",
-            description = "Trả về các gói thuốc nhẹ hơn hoặc phù hợp hơn được khuyến nghị cho gói hiện tại."
-    )
-    public ResponseEntity<List<RecommendationResponse>> getRecommendationsFrom(@PathVariable Long id) {
-        return ResponseEntity.ok(cigaretteRecommendationService.getRecommendationsFrom(id));
-    }
 }
 
