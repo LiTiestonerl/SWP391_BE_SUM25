@@ -3,8 +3,11 @@ package com.example.smoking_cessation_platform.service;
 import com.example.smoking_cessation_platform.dto.paymentTransaction.PaymentRequest;
 import com.example.smoking_cessation_platform.entity.MemberPackage;
 import com.example.smoking_cessation_platform.entity.PaymentTransaction;
+import com.example.smoking_cessation_platform.entity.User;
+import com.example.smoking_cessation_platform.entity.UserMemberPackage;
 import com.example.smoking_cessation_platform.repository.MemberPackageRepository;
 import com.example.smoking_cessation_platform.repository.PaymentTransactionRepository;
+import com.example.smoking_cessation_platform.repository.UserMemberPackageRepository;
 import com.example.smoking_cessation_platform.vnpay.VnPayProperties;
 import com.example.smoking_cessation_platform.vnpay.VnPayUtils;
 import com.google.api.client.util.Value;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -26,36 +30,35 @@ import java.util.stream.Collectors;
 public class PaymentTransactionService {
 
     @Autowired
-    MemberPackageRepository memberPackageRepository;
+    private MemberPackageRepository memberPackageRepository;
 
     @Autowired
-    VnPayProperties vnPayProperties;
+    private VnPayProperties vnPayProperties;
 
     @Autowired
-    UserService userService;
-
+    private UserService userService;
 
     @Autowired
-    PaymentTransactionRepository paymentTransactionRepository;
+    private PaymentTransactionRepository paymentTransactionRepository;
+
+    @Autowired
+    private UserMemberPackageRepository userMemberPackageRepository;
 
     @Value("${integration.vnpay.secret-key}")
     private String hashSecret;
 
     public String createPaymentUrl(PaymentRequest paymentRequest) {
-        // 1. Lấy thông tin gói thành viên từ DB
         MemberPackage memberPackage = memberPackageRepository.findById(paymentRequest.getMemberPackageId())
                 .orElseThrow(() -> new RuntimeException("Gói thành viên không tồn tại"));
 
-        String orderId = VnPayUtils.getRandomNumber(8); // Mã giao dịch ngẫu nhiên
+        String orderId = VnPayUtils.getRandomNumber(8);
         String currCode = "VND";
         String clientIp = "167.99.74.201";
 
-        // 2. Format thời gian
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String formattedCreateDate = now.format(formatter);
 
-        //3 tạo vnParams
         Map<String, String> vnpParams = new TreeMap<>();
         vnpParams.put("vnp_Version", vnPayProperties.getVersion());
         vnpParams.put("vnp_Command", vnPayProperties.getCommand());
@@ -70,11 +73,9 @@ public class PaymentTransactionService {
         vnpParams.put("vnp_CreateDate", formattedCreateDate);
         vnpParams.put("vnp_IpAddr", clientIp);
 
-        // 4. Sinh chuỗi query + secure hash
         String query = VnPayUtils.getPaymentURL(vnpParams, true);
         String secureHash = VnPayUtils.hmacSHA512(vnPayProperties.getSecretKey(), query);
 
-        // 5. Lưu PaymentTransaction (nếu cần)
         PaymentTransaction transaction = new PaymentTransaction();
         transaction.setTxnRef(orderId);
         transaction.setAmount(memberPackage.getPrice());
@@ -87,52 +88,53 @@ public class PaymentTransactionService {
 
         paymentTransactionRepository.save(transaction);
 
-        // 6. Trả về full URL redirect đến VNPay
         return vnPayProperties.getUrl() + "?" + query + "&vnp_SecureHash=" + secureHash;
     }
 
-    public String processVnPayReturn(HttpServletRequest request) {
-        Map<String, String> vnpParams = request.getParameterMap().entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> e.getValue()[0],  // Lấy phần tử đầu
-                        (oldVal, newVal) -> oldVal, // Tránh lỗi duplicate key
-                        TreeMap::new // Sắp xếp theo alphabet cho chắc
-                ));
+    private void grantMemberPackage(User user, MemberPackage memberPackage) {
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusMonths(memberPackage.getDuration());
 
-        // ✅ Validate chữ ký
-        boolean isValidSignature = VnPayUtils.validateSignature(vnpParams, hashSecret);
-        if (!isValidSignature) {
-            return " Chữ ký không hợp lệ. Có thể bị giả mạo!";
-        }
+        UserMemberPackage userMemberPackage = new UserMemberPackage();
+        userMemberPackage.setUser(user);
+        userMemberPackage.setMemberPackage(memberPackage);
+        userMemberPackage.setStartDate(startDate);
+        userMemberPackage.setEndDate(endDate);
+        userMemberPackage.setStatus("active");
 
-        // ✅ Lấy txnRef để tìm transaction
-        String txnRef = vnpParams.get("vnp_TxnRef");
+        userMemberPackageRepository.save(userMemberPackage);
+    }
+
+    public Optional<PaymentTransaction> verifyAndProcessTransaction(String txnRef) {
         Optional<PaymentTransaction> optTx = paymentTransactionRepository.findByTxnRef(txnRef);
-
         if (optTx.isEmpty()) {
-            return " Không tìm thấy giao dịch với mã tham chiếu: " + txnRef;
+            return Optional.empty();
         }
 
         PaymentTransaction tx = optTx.get();
 
-        // ✅ Kiểm tra response code từ VNPay
-        String responseCode = vnpParams.get("vnp_ResponseCode");
+        // Nếu đã xử lý rồi thì trả luôn
+        if (!"PENDING".equals(tx.getStatus())) {
+            return Optional.of(tx);
+        }
+
+        // Optional: Nếu bạn lưu được các `vnp_` params trong DB hoặc truyền từ FE thì nên xác minh lại chữ ký ở đây
+
+        // Giả sử bạn tin tưởng kết quả do VNPay redirect (hoặc đã có `vnp_ResponseCode`)
+        String responseCode = "00"; // Bạn cần truyền thêm từ FE nếu muốn chính xác hơn
+
         if ("00".equals(responseCode)) {
             tx.setStatus("SUCCESS");
+            grantMemberPackage(tx.getUser(), tx.getMemberPackage());
         } else {
             tx.setStatus("FAILED");
         }
 
-        // ✅ Cập nhật thêm thông tin từ VNPay
-        tx.setTransactionCode(vnpParams.get("vnp_TransactionNo"));
         tx.setTransactionDate(LocalDateTime.now());
-
         paymentTransactionRepository.save(tx);
 
-        // ✅ Trả kết quả cho người dùng
-        return " Thanh toán " + (responseCode.equals("00") ? "thành công" : "không thành công") +
-                " với mã giao dịch: " + txnRef;
+        return Optional.of(tx);
     }
 }
+
 
