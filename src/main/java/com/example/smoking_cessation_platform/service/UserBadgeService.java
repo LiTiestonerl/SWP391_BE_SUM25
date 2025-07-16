@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,31 +46,35 @@ public class UserBadgeService {
      * 2. Xem chi tiết một userBadge
      */
     public List<UserBadgeResponse> getBadgeById(Integer userBadgeId) {
-        UserBadge userBadge = userBadgeRepository.findById(userBadgeId)
-                .orElseThrow(()->new ResourceNotFoundException("UserBadge",userBadgeId));
+        UserBadge userBadge = getBadgeEntityOrThrow(userBadgeId);
         return List.of(userBadgeMapper.toResponse(userBadge));
     }
 
     /**
      * 3. Chia sẻ huy hiệu
      */
-    public List<UserBadgeResponse> shareUserBadge(Integer id) {
-        UserBadge badge = userBadgeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("UserBadge", id));
+    @Transactional
+    public List<UserBadgeResponse> shareUserBadge(Integer id, Long currentUserId) {
+        if (!isOwnerOfBadge(id, currentUserId)) {
+            throw new SecurityException("Bạn không có quyền chia sẻ huy hiệu này.");
+        }
+
+        UserBadge badge = getBadgeEntityOrThrow(id);
         badge.setShared(true);
-        userBadgeRepository.save(badge);
-        return List.of(userBadgeMapper.toResponse(badge));
+        return List.of(userBadgeMapper.toResponse(userBadgeRepository.save(badge)));
     }
 
     /**
      * 4. Hủy chia sẻ huy hiệu
      */
-    public List<UserBadgeResponse> unshareUserBadge(Integer id) {
-        UserBadge badge = userBadgeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("UserBadge", id));
+    public List<UserBadgeResponse> unshareUserBadge(Integer id, Long currentUserId) {
+        if (!isOwnerOfBadge(id, currentUserId)) {
+            throw new SecurityException("Bạn không có quyền hủy chia sẻ huy hiệu này.");
+        }
+
+        UserBadge badge = getBadgeEntityOrThrow(id);
         badge.setShared(false);
-        userBadgeRepository.save(badge);
-        return List.of(userBadgeMapper.toResponse(badge));
+        return List.of(userBadgeMapper.toResponse(userBadgeRepository.save(badge)));
     }
 
 
@@ -83,5 +88,18 @@ public class UserBadgeService {
                 .collect(Collectors.toList());
     }
 
+    public boolean isOwnerOfBadge(Integer badgeId, Long userId) {
+        return userBadgeRepository.findById(badgeId)
+                .map(badge -> badge.getUser().getUserId().equals(userId))
+                .orElse(false);
+    }
+
+    /**
+     * Lấy entity UserBadge hoặc ném lỗi nếu không tìm thấy.
+     */
+    private UserBadge getBadgeEntityOrThrow(Integer badgeId) {
+        return userBadgeRepository.findById(badgeId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserBadge", badgeId));
+    }
 
 }
