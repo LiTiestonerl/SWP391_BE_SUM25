@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -47,6 +48,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
@@ -160,6 +162,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/smoking-status").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/api/smoking-status").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/api/smoking-status/{userId}").hasRole("ADMIN")
+
+                        //Chat
+                        .requestMatchers(HttpMethod.GET, "/api/chat/sessions").hasAnyRole("USER", "COACH")
+                        .requestMatchers(HttpMethod.GET, "/api/chat/sessions/{id}").hasAnyRole("USER", "COACH")
+                        .requestMatchers(HttpMethod.GET, "/api/chat/sessions/{id}/messages").hasAnyRole("USER", "COACH")
+                        .requestMatchers(HttpMethod.POST, "/api/chat/sessions").hasRole("USER")
 
                         // 13️ Mặc định: phải login
                         .anyRequest().authenticated()
