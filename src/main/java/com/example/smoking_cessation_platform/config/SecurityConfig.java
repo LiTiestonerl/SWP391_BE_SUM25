@@ -67,9 +67,6 @@ public class SecurityConfig {
                         // APIs chỉ dành cho ADMIN
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // APIs chỉ dành cho COACH
-                        .requestMatchers("/api/coach/**").hasRole("COACH")
-
                         // APIs dành cho USER (bao gồm Coach và ADMIN nếu muốn)
                         .requestMatchers("/api/users/**").hasAnyRole("USER", "COACH", "ADMIN")
 
@@ -111,6 +108,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/smoking-status/**").hasRole("USER")
                         .requestMatchers(HttpMethod.DELETE, "/api/smoking-status/**").hasRole("USER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/coach/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
