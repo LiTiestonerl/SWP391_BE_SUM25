@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +37,19 @@ public class UserService {
     public Optional<UserProfileResponse> getUserProfile(Long userId) {
         return userRepository.findById(userId)
                 .map(this::convertToUserProfileResponse);
+    }
+
+    /**
+     * Lấy danh sách tất cả người dùng có vai trò "COACH" và chuyển đổi sang DTO.
+     * Dùng cho việc hiển thị danh sách huấn luyện viên.
+     * @return Danh sách các DTO hồ sơ người dùng với vai trò "COACH".
+     */
+    public List<UserProfileResponse> getListCoachProfile() {
+        return roleRepository.findByRoleName("COACH")
+                .map(coachRole -> userRepository.findByRole(coachRole).stream()
+                        .map(this::convertToUserProfileResponse)
+                        .collect(Collectors.toList()))
+                .orElseGet(Collections::emptyList);
     }
 
     /**
@@ -146,5 +160,9 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với ID: " + currentUserId));
     }
 
-
+    public UserProfileResponse getCoachProfileById(Long id) {
+        return userRepository.findById(id)
+                .map(this::convertToUserProfileResponse)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy coach với ID: " + id));
+    }
 }

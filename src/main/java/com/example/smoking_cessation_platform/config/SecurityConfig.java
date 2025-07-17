@@ -76,10 +76,7 @@ public class SecurityConfig {
                         // 3️ ADMIN‑only
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // 4️ COACH‑only
-                        .requestMatchers("/api/coach/**").hasRole("COACH")
-
-                        // 5️ USER + COACH + ADMIN
+                        // APIs dành cho USER (bao gồm Coach và ADMIN nếu muốn)
                         .requestMatchers("/api/users/**").hasAnyRole("USER", "COACH", "ADMIN")
 
                         // 6️ Member‑package
@@ -170,6 +167,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/chat/sessions").hasRole("USER")
 
                         // 13️ Mặc định: phải login
+                        .requestMatchers(HttpMethod.GET, "/api/coach/**").permitAll()
                         .anyRequest().authenticated()
                 );
 

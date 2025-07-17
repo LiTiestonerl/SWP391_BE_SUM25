@@ -1,90 +1,128 @@
 package com.example.smoking_cessation_platform.service;
 
-import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageDTO;
+import com.example.smoking_cessation_platform.dto.cigarettepackage.CigarettePackageResponse;
+import com.example.smoking_cessation_platform.dto.cigarettepackage.CigarettePackagerequest;
 import com.example.smoking_cessation_platform.entity.CigarettePackage;
-import com.example.smoking_cessation_platform.exception.ResourceNotFoundException;
-import com.example.smoking_cessation_platform.mapper.CigarettePackageMapper;
 import com.example.smoking_cessation_platform.repository.CigarettePackageRepository;
+import com.example.smoking_cessation_platform.repository.CigaretteRecommendationRepository;
+import com.example.smoking_cessation_platform.repository.SmokingStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @Service
 public class CigarettePackageService {
-    @Autowired
-    CigarettePackageRepository cigarettePackageRepository;
 
     @Autowired
-    CigarettePackageMapper cigarettePackageMapper;
+    private CigarettePackageRepository cigarettePackageRepository;
 
-    public List<CigarettePackageDTO> getAllPackage() {
+    @Autowired
+    private SmokingStatusRepository smokingStatusRepository;
+
+    @Autowired
+    private CigaretteRecommendationRepository cigaretteRecommendationRepository;
+
+
+    /**
+     * Tạo một gói thuốc lá mới.
+     * @param createDto DTO chứa thông tin gói thuốc lá cần tạo.
+     * @return DTO phản hồi của gói thuốc lá đã được tạo.
+     */
+    @Transactional
+    public CigarettePackageResponse createCigarettePackage(CigarettePackagerequest createDto) {
+        if (cigarettePackageRepository.existsByCigaretteName(createDto.getCigaretteName())) {
+            throw new RuntimeException("Gói thuốc lá với tên này đã tồn tại.");
+        }
+
+        CigarettePackage cigarettePackage = CigarettePackage.builder()
+                .cigaretteName(createDto.getCigaretteName())
+                .brand(createDto.getCigaretteBrand())
+                .flavor(createDto.getFlavor())
+                .nicoteneStrength(createDto.getNicoteneStrength())
+                .sticksPerPack(createDto.getSticksPerPack())
+                .price(createDto.getPrice())
+                .build();
+
+        CigarettePackage savedPackage = cigarettePackageRepository.save(cigarettePackage);
+
+        return convertToDto(savedPackage);
+    }
+
+    /**
+     * Cập nhật thông tin gói thuốc lá.
+     * @param cigaretteId ID của gói thuốc lá cần cập nhật.
+     * @param updateDto DTO chứa thông tin cập nhật gói thuốc lá.
+     * @return Optional chứa DTO phản hồi của gói thuốc lá đã được cập nhật, hoặc rỗng nếu không tìm thấy gói thuốc lá.
+     */
+    @Transactional
+    public Optional<CigarettePackageResponse> updateCigarettePackage(Long cigaretteId, CigarettePackagerequest updateDto) {
+        return cigarettePackageRepository.findById(cigaretteId)
+                .map(existingPackage -> {
+                    existingPackage.setCigaretteName(updateDto.getCigaretteName());
+                    existingPackage.setBrand(updateDto.getCigaretteBrand());
+                    existingPackage.setFlavor(updateDto.getFlavor());
+                    existingPackage.setNicoteneStrength(updateDto.getNicoteneStrength());
+                    existingPackage.setSticksPerPack(updateDto.getSticksPerPack());
+                    existingPackage.setPrice(updateDto.getPrice());
+                    CigarettePackage updatedPackage = cigarettePackageRepository.save(existingPackage);
+                    return convertToDto(updatedPackage);
+                });
+    }
+
+
+    @Transactional
+    public boolean deleteCigarettePackage(Long cigaretteId) {
+        if (!cigarettePackageRepository.existsById(cigaretteId)) {
+            return false;
+        }
+        cigaretteRecommendationRepository.deleteByToPackage_CigaretteId(cigaretteId);// xoá relate liên quan đến recommendation
+        cigaretteRecommendationRepository.deleteByFromPackage_CigaretteId(cigaretteId);// xoá relate liên quan đến recommendation
+        cigarettePackageRepository.deleteById(cigaretteId);
+        return true;
+    }
+
+    /**
+     * Lấy tất cả các gói thuốc lá.
+     * @return Danh sách các DTO phản hồi gói thuốc lá.
+     */
+    public List<CigarettePackageResponse> getAllCigarettePackages() {
         return cigarettePackageRepository.findAll().stream()
-                .map(cigarettePackageMapper:: toDTO)
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-
-    public CigarettePackageDTO createPackage(CigarettePackageDTO dto) {
-        // Chuyển DTO → Entity
-        CigarettePackage pkg = cigarettePackageMapper.toEntity(dto);
-
-        // Xoá id để đảm bảo Hibernate INSERT thay vì MERGE
-        pkg.setCigaretteId(null);
-
-        // Lưu entity và trả DTO về
-        CigarettePackage saved = cigarettePackageRepository.save(pkg);
-        return cigarettePackageMapper.toDTO(saved);
+    /**
+     * Lấy một gói thuốc lá theo ID.
+     * @param cigaretteId ID của gói thuốc lá cần lấy.
+     * @return Optional chứa DTO phản hồi của gói thuốc lá, hoặc rỗng nếu không tìm thấy.
+     */
+    public Optional<CigarettePackageResponse> getCigarettePackageById(Long cigaretteId) {
+        return cigarettePackageRepository.findById(cigaretteId)
+                .map(this::convertToDto);
     }
 
 
-    public void deletePackage(Long id) {
-        if (!cigarettePackageRepository.existsById(id)) {
-            throw new ResourceNotFoundException("CigarettePackage", id);
-        }
-        cigarettePackageRepository.deleteById(id);
+    /**
+     * Phương thức hỗ trợ chuyển đổi từ Entity CigarettePackage sang CigarettePackageResponse.
+     * @param cigarettePackage Entity CigarettePackage.
+     * @return CigarettePackageResponse.
+     */
+    private CigarettePackageResponse convertToDto(CigarettePackage cigarettePackage) {
+        return CigarettePackageResponse.builder()
+                .cigarettePackageId(cigarettePackage.getCigaretteId())
+                .cigarettePackageName(cigarettePackage.getCigaretteName())
+                .brand(cigarettePackage.getBrand())
+                .flavor(cigarettePackage.getFlavor())
+                .nicotineLevel(cigarettePackage.getNicoteneStrength())
+                .sticksPerPack(cigarettePackage.getSticksPerPack())
+                .pricePerPack(cigarettePackage.getPrice())
+                .build();
     }
 
 
-    public CigarettePackage getPackageId(Long fromPackageId) {
-        return cigarettePackageRepository.findById(fromPackageId)
-                .orElseThrow(() -> new ResourceNotFoundException("CigarettePackage", fromPackageId));
-    }
-
-    public CigarettePackageDTO updatePackage(Long id, CigarettePackageDTO dto) {
-        // 1. Tìm entity hiện có; nếu không thấy thì ném lỗi
-        CigarettePackage pkg = cigarettePackageRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("CigarettePackage", id));
-
-        // 2. Ghi đè các thuộc tính (full‑update theo chuẩn PUT)
-        pkg.setCigaretteName(dto.getCigaretteName());
-        pkg.setPrice(dto.getPrice());
-        pkg.setBrand(dto.getBrand());
-        pkg.setNicoteneStrength(dto.getNicoteneStrength());
-        pkg.setFlavor(dto.getFlavor());
-        pkg.setSticksPerPack(dto.getSticksPerPack());
-        pkg.setNicotineMg(dto.getNicotineMg());
-
-        // 3. Lưu lại DB
-        CigarettePackage saved = cigarettePackageRepository.save(pkg);
-
-        // 4. Chuyển sang DTO trả về
-        return cigarettePackageMapper.toDTO(saved);
-    }
-
-    public CigarettePackageDTO getByIdDTO(Long id) {
-        // 1. Tìm kiếm gói thuốc theo ID
-        CigarettePackage pkg = cigarettePackageRepository.findById(id)
-                // 2. Nếu không tìm thấy thì ném lỗi ResourceNotFoundException
-                .orElseThrow(() -> new ResourceNotFoundException("CigarettePackage", id));
-
-        // 3. Chuyển entity thành DTO rồi trả về
-        return cigarettePackageMapper.toDTO(pkg);
-    }
-
-    // ✅ Thêm hàm này để dùng ở RecommendationService
-    public List<CigarettePackage> getAllPackages() {
-        return cigarettePackageRepository.findAll();
-    }
 }

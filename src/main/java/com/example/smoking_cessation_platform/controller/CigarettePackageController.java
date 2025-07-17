@@ -1,17 +1,18 @@
 package com.example.smoking_cessation_platform.controller;
 
-import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageDTO;
-import com.example.smoking_cessation_platform.dto.CigarettePackage.RecommendationResponse;
+
+import com.example.smoking_cessation_platform.dto.cigarettepackage.CigarettePackageResponse;
+import com.example.smoking_cessation_platform.dto.cigarettepackage.CigarettePackagerequest;
 import com.example.smoking_cessation_platform.service.CigarettePackageService;
-import com.example.smoking_cessation_platform.service.CigaretteRecommendationService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cigarette-packages")
@@ -21,95 +22,85 @@ public class CigarettePackageController {
     @Autowired
     private CigarettePackageService cigarettePackageService;
 
-    @Autowired
-    private CigaretteRecommendationService cigaretteRecommendationService;
-
     /**
-     * API lấy thông tin chi tiết một gói thuốc.
-     * <p>
-     * Yêu cầu: <code>GET /api/cigarette-packages/{id}</code>
-     * <p>
-     * API này cho phép <em>bất kỳ người dùng</em> đã xác thực hoặc chưa xác thực đều truy cập.
+     * API để tạo một gói thuốc lá mới.
+     * Yêu cầu: POST /api/cigarette-packages
+     * Body: CigarettePackagerequest (JSON)
      *
-     * @param id ID của gói thuốc cần lấy.
-     * @return ResponseEntity chứa {@link CigarettePackageDTO} tương ứng.
+     * @param createDto DTO chứa thông tin gói thuốc lá cần tạo.
+     * @return ResponseEntity chứa DTO phản hồi của gói thuốc lá đã được tạo.
      */
-    @GetMapping("/{id}")
-    @Operation(
-            summary = "Lấy chi tiết gói thuốc theo ID",
-            description = "Trả về thông tin chi tiết của gói thuốc với ID tương ứng. Có thể truy cập công khai."
-    )
-    public ResponseEntity<CigarettePackageDTO> getPackageById(@PathVariable Long id) {
-        return ResponseEntity.ok(cigarettePackageService.getByIdDTO(id));
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    public ResponseEntity<CigarettePackageResponse> createCigarettePackage(CigarettePackagerequest createDto) {
+        CigarettePackageResponse newPackage = cigarettePackageService.createCigarettePackage(createDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newPackage);
     }
 
     /**
-     * API lấy danh sách tất cả gói thuốc.
-     * <p>
-     * Yêu cầu: <code>GET /api/cigarette-packages</code>
+     * API để cập nhật thông tin gói thuốc lá.
+     * Yêu cầu: PUT /api/cigarette-packages/{cigaretteId}
+     * Body: CigarettePackagerequest (JSON)
      *
-     * @return ResponseEntity chứa danh sách {@link CigarettePackageDTO}.
+     * @param cigaretteId ID của gói thuốc lá cần cập nhật.
+     * @param updateDto   DTO chứa thông tin cập nhật gói thuốc lá.
+     * @return ResponseEntity chứa DTO phản hồi của gói thuốc lá đã được cập nhật, hoặc NOT_FOUND nếu không tìm thấy gói thuốc lá.
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{cigaretteId}")
+    public ResponseEntity<CigarettePackageResponse> updateCigarettePackage(@PathVariable Long cigaretteId, @Valid @RequestBody CigarettePackagerequest updateDto) {
+        Optional<CigarettePackageResponse> updatedPackage = cigarettePackageService.updateCigarettePackage(cigaretteId, updateDto);
+        return updatedPackage.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    /**
+     * API để xóa một gói thuốc lá.
+     * Yêu cầu: DELETE /api/cigarette-packages/{cigaretteId}
+     *
+     * @param cigaretteId ID của gói thuốc lá cần xóa.
+     * @return ResponseEntity chứa thông báo thành công hoặc lỗi nếu không tìm thấy gói thuốc lá.
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{cigaretteId}")
+    public ResponseEntity<String> deleteCigarettePackage(@PathVariable Long cigaretteId) {
+        try {
+            cigarettePackageService.deleteCigarettePackage(cigaretteId);
+            return ResponseEntity.ok("Gói thuốc lá đã được xóa thành công.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy gói thuốc lá với ID: " + cigaretteId);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi xóa gói thuốc lá.");
+        }
+    }
+
+    /**
+     * API để lấy một gói thuốc lá theo ID.
+     * Yêu cầu: GET /api/cigarette-packages/{cigaretteId}
+     *
+     * @param cigaretteId ID của gói thuốc lá cần lấy.
+     * @return ResponseEntity chứa DTO phản hồi của gói thuốc lá hoặc NOT_FOUND nếu không tìm thấy.
+     */
+    @GetMapping({"/{cigaretteId}"})
+    public ResponseEntity<CigarettePackageResponse> getCigarettePackageById(@PathVariable Long cigaretteId) {
+        Optional<CigarettePackageResponse> cigarettePackage = cigarettePackageService.getCigarettePackageById(cigaretteId);
+        return cigarettePackage.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    /**
+     * API để lấy tất cả các gói thuốc lá.
+     * Yêu cầu: GET /api/cigarette-packages
+     *
+     * @return ResponseEntity chứa danh sách DTO phản hồi của tất cả gói thuốc lá.
      */
     @GetMapping
-    @Operation(
-            summary = "Lấy danh sách tất cả gói thuốc",
-            description = "Trả về danh sách toàn bộ gói thuốc trong hệ thống."
-    )
-    public ResponseEntity<List<CigarettePackageDTO>> getAllPackage() {
-        return ResponseEntity.ok(cigarettePackageService.getAllPackage());
+    public ResponseEntity<?> getAllCigarettePackages() {
+        try {
+            return ResponseEntity.ok(cigarettePackageService.getAllCigarettePackages());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi lấy danh sách gói thuốc lá.");
+        }
     }
 
-    /**
-     * API tạo mới một gói thuốc.
-     * <p>
-     * Yêu cầu: <code>POST /api/cigarette-packages</code>
-     * <br>Body: <code>CigarettePackageDTO</code> (JSON)
-     * <p>
-     * <strong>Quyền truy cập:</strong> Chỉ người dùng có vai trò <code>ADMIN</code>.
-     *
-     * @param dto DTO chứa thông tin gói thuốc cần tạo.
-     * @return ResponseEntity chứa {@link CigarettePackageDTO} vừa được tạo.
-     */
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CigarettePackageDTO> createPackage(@RequestBody CigarettePackageDTO dto) {
-        return ResponseEntity.ok(cigarettePackageService.createPackage(dto));
-    }
 
-    /**
-     * API cập nhật thông tin gói thuốc.
-     * <p>
-     * Yêu cầu: <code>PUT /api/cigarette-packages/{id}</code>
-     * <br>Body: <code>CigarettePackageDTO</code> (JSON)
-     * <p>
-     * <strong>Quyền truy cập:</strong> Chỉ người dùng có vai trò <code>ADMIN</code>.
-     *
-     * @param id  ID gói thuốc cần cập nhật.
-     * @param dto DTO chứa thông tin mới của gói thuốc.
-     * @return ResponseEntity chứa {@link CigarettePackageDTO} sau khi cập nhật.
-     */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CigarettePackageDTO> updatePackage(@PathVariable Long id,
-                                                             @RequestBody CigarettePackageDTO dto) {
-        return ResponseEntity.ok(cigarettePackageService.updatePackage(id, dto));
-    }
-
-    /**
-     * API xoá một gói thuốc.
-     * <p>
-     * Yêu cầu: <code>DELETE /api/cigarette-packages/{id}</code>
-     * <p>
-     * <strong>Quyền truy cập:</strong> Chỉ người dùng có vai trò <code>ADMIN</code>.
-     *
-     * @param id ID gói thuốc cần xoá.
-     * @return ResponseEntity với mã trạng thái <code>204 No Content</code> khi xoá thành công.
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deletePackage(@PathVariable Long id) {
-        cigarettePackageService.deletePackage(id);
-        return ResponseEntity.noContent().build();
-    }
 }
-
