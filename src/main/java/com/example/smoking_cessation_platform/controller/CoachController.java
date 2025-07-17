@@ -5,6 +5,7 @@ import com.example.smoking_cessation_platform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,7 +28,7 @@ public class CoachController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<UserProfileResponse> getCoachById(Long id) {
+    public ResponseEntity<UserProfileResponse> getCoachById(@PathVariable Long id) {
         UserProfileResponse coachProfile = userService.getCoachProfileById(id);
         if (coachProfile == null) {
             return ResponseEntity.notFound().build();

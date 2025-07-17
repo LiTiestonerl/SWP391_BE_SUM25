@@ -3,6 +3,8 @@ package com.example.smoking_cessation_platform.service;
 import com.example.smoking_cessation_platform.entity.User;
 import com.example.smoking_cessation_platform.entity.Role;
 import com.example.smoking_cessation_platform.dto.user.UserProfileResponse;
+import com.example.smoking_cessation_platform.dto.user.UserProfileRequest;
+import com.example.smoking_cessation_platform.exception.UserNotFoundException;
 import com.example.smoking_cessation_platform.repository.RoleRepository;
 import com.example.smoking_cessation_platform.repository.UserRepository;
 import com.example.smoking_cessation_platform.security.CustomUserDetails;
@@ -22,28 +24,20 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
+    public AuthService authService;
+
     @Autowired
     private UserRepository userRepository;
+
 
     @Autowired
     private RoleRepository roleRepository;
 
-    /**
-     * Lấy thông tin hồ sơ người dùng và chuyển đổi sang DTO.
-     * Phương thức này được dùng để lấy hồ sơ của bất kỳ người dùng nào theo ID (cho Admin).
-     * @param userId ID của người dùng.
-     * @return Optional chứa DTO hồ sơ nếu tìm thấy.
-     */
     public Optional<UserProfileResponse> getUserProfile(Long userId) {
         return userRepository.findById(userId)
                 .map(this::convertToUserProfileResponse);
     }
 
-    /**
-     * Lấy danh sách tất cả người dùng có vai trò "COACH" và chuyển đổi sang DTO.
-     * Dùng cho việc hiển thị danh sách huấn luyện viên.
-     * @return Danh sách các DTO hồ sơ người dùng với vai trò "COACH".
-     */
     public List<UserProfileResponse> getListCoachProfile() {
         return roleRepository.findByRoleName("COACH")
                 .map(coachRole -> userRepository.findByRole(coachRole).stream()
@@ -52,36 +46,46 @@ public class UserService {
                 .orElseGet(Collections::emptyList);
     }
 
-    /**
-     * Lấy thông tin hồ sơ của người dùng theo Public ID và chuyển đổi sang DTO.
-     * Dùng cho việc hiển thị hồ sơ công khai hoặc tìm kiếm an toàn.
-     * @param userPublicId Public ID của người dùng.
-     * @return Optional chứa DTO hồ sơ nếu tìm thấy.
-     */
+    public UserProfileResponse getCoachProfileById(Long id) {
+        return userRepository.findById(id)
+                .map(this::convertToUserProfileResponse)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy coach với ID: " + id));
+    }
+
     public Optional<UserProfileResponse> getUserProfileByPublicId(String userPublicId) {
         return userRepository.findByUserPublicId(userPublicId)
                 .map(this::convertToUserProfileResponse);
     }
 
-    // Các phương thức quản lý dành cho Admin
+    public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest) {
+        Optional<User> optionalUser = userRepository.findById(userProfileRequest.getUserId());
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setUserName(userProfileRequest.getUsername());
 
-    /**
-     * Lấy danh sách tất cả người dùng trong hệ thống. (Chỉ Admin)
-     * @return Danh sách các DTO hồ sơ người dùng.
-     */
+            boolean isEmailChanged = !user.getEmail().equals(userProfileRequest.getEmail());
+
+            user.setEmail(userProfileRequest.getEmail());
+            user.setPhone(userProfileRequest.getPhone());
+            user.setFullName(userProfileRequest.getFullName());
+
+            if (isEmailChanged){
+                user.setIsEmailVerified(false);
+                authService.sendEmailVerificationOtp(user);
+            }
+            userRepository.save(user);
+            return convertToUserProfileResponse(user);
+        } else {
+            throw new UserNotFoundException("Không tìm thấy người dùng với ID: " + userProfileRequest.getUserId());
+        }
+    }
+
     public List<UserProfileResponse> getAllUsersForAdmin() {
         return userRepository.findAll().stream()
                 .map(this::convertToUserProfileResponse)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Cập nhật vai trò (role) và/hoặc trạng thái (status) của người dùng bởi Admin.
-     * @param userId ID của người dùng cần cập nhật.
-     * @param newRoleId ID của vai trò mới (tùy chọn).
-     * @param newStatus Trạng thái mới (tùy chọn, ví dụ: "active", "inactive").
-     * @return Optional chứa DTO hồ sơ người dùng đã cập nhật.
-     */
     @Transactional
     public Optional<UserProfileResponse> updateUserRoleAndStatus(Long userId, Integer newRoleId, String newStatus) {
         return userRepository.findById(userId)
@@ -99,11 +103,6 @@ public class UserService {
                 });
     }
 
-    /**
-     * Xóa người dùng khỏi hệ thống bởi Admin.
-     * @param userId ID của người dùng cần xóa.
-     * @return true nếu người dùng đã bị xóa, ngược lại false.
-     */
     @Transactional
     public boolean deleteUser(Long userId) {
         if (userRepository.existsById(userId)) {
@@ -113,11 +112,6 @@ public class UserService {
         return false;
     }
 
-    /**
-     * Phương thức hỗ trợ chuyển đổi từ Entity User sang UserProfileResponse DTO.
-     * @param user Entity User.
-     * @return UserProfileResponse DTO.
-     */
     private UserProfileResponse convertToUserProfileResponse(User user) {
         return UserProfileResponse.builder()
                 .userId(user.getUserId())
@@ -134,10 +128,6 @@ public class UserService {
                 .build();
     }
 
-    /**
-     * Trả về entity User tương ứng với người đang đăng nhập.
-     * Ném RuntimeException nếu chưa login hoặc user không tồn tại.
-     */
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -146,17 +136,10 @@ public class UserService {
             throw new RuntimeException("Người dùng chưa đăng nhập");
         }
 
-        // Giả sử bạn dùng CustomUserDetails đã lưu userId
         CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
         Long currentUserId = principal.getUserId();
 
         return userRepository.findById(currentUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với ID: " + currentUserId));
-    }
-
-    public UserProfileResponse getCoachProfileById(Long id) {
-        return userRepository.findById(id)
-                .map(this::convertToUserProfileResponse)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy coach với ID: " + id));
     }
 }
