@@ -1,9 +1,6 @@
 package com.example.smoking_cessation_platform.dto.memberpackage;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +18,7 @@ public class MemberPackageRequest {
     private String packageName;
 
     @NotNull(message = "Giá không được để trống")
-    @Positive(message = "Giá phải là số dương")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Giá phải là một giá trị hợp lệ")
     private BigDecimal price;
 
     @NotNull(message = "Thời lượng không được để trống")
