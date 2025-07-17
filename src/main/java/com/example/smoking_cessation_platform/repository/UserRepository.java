@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.repository;
 
+import com.example.smoking_cessation_platform.entity.Role;
 import com.example.smoking_cessation_platform.entity.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserId(Long userId);
     boolean existsByEmail(String email);
     boolean existsByUserName(String userName);
+    Optional<User> findByRole(Role role);
 }
