@@ -6,6 +6,7 @@ import com.example.smoking_cessation_platform.dto.auth.*;
 import com.example.smoking_cessation_platform.entity.User;
 import com.example.smoking_cessation_platform.service.AuthService;
 import com.example.smoking_cessation_platform.service.TokenService;
+import com.google.api.client.auth.oauth2.RefreshTokenRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +82,7 @@ public class AuthController {
     @PostMapping("/google")
     public ResponseEntity<?> registerOrLoginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
         try {
-            User user = authService.registerOrLoginWithGoogle(request);
+            AuthResponse user = authService.registerOrLoginWithGoogle(request);
             return ResponseEntity.ok("Đăng nhập/Đăng ký Google thành công cho: " + user.getEmail());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -139,6 +140,30 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi đặt lại mật khẩu.");
         }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest req) {
+        String refreshToken = req.getRefreshToken();
+
+        if (!tokenService.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token không hợp lệ hoặc đã hết hạn");
+        }
+
+        User user = tokenService.getUserByToken(refreshToken);
+        String newAccessToken = tokenService.generateAccessToken(user);
+
+        return ResponseEntity.ok(new AuthResponse(
+                user.getUserId(),
+                user.getUserPublicId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole().getRoleName(),
+                user.getStatus(),
+                newAccessToken,
+                "Bearer",
+                refreshToken // có thể trả lại refresh cũ hoặc tạo refresh mới tuỳ chính sách
+        ));
     }
 
 }

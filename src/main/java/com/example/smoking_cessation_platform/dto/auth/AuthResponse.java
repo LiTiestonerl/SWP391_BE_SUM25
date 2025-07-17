@@ -16,4 +16,5 @@ public class AuthResponse {
     private String status;
     private String token;
     private String tokenType = "Bearer"; // ✅ thêm field này
+    private String refreshToken; // 🔥 Thêm dòng này
 }

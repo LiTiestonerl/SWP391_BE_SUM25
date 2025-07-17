@@ -191,10 +191,10 @@ public class AuthService {
      *
      */
     @Transactional
-    public User registerOrLoginWithGoogle(GoogleAuthRequest request) {
+    public AuthResponse registerOrLoginWithGoogle(GoogleAuthRequest request) {
         GoogleIdToken idToken;
         try {
-            idToken = verifier.verify(request.getIdToken());  // ✅ Bước xác minh ID Token
+            idToken = verifier.verify(request.getIdToken());
         } catch (GeneralSecurityException | IOException e) {
             throw new RuntimeException("Xác minh Google ID Token thất bại: " + e.getMessage());
         }
@@ -203,50 +203,66 @@ public class AuthService {
             throw new RuntimeException("Google ID Token không hợp lệ.");
         }
 
-        GoogleIdToken.Payload payload = idToken.getPayload();  // ✅ Trích thông tin từ payload
+        GoogleIdToken.Payload payload = idToken.getPayload();
         String email = payload.getEmail();
         String googleId = payload.getSubject();
         String fullName = (String) payload.get("name");
         String userName = email;
 
-        Optional<User> existingUser = userRepository.findByEmail(email);
-        if (existingUser.isPresent()) {
-            User user = existingUser.get();
-            if ("GOOGLE".equals(user.getAuthProvider()) && googleId.equals(user.getProviderId())) {
-                return user;
-            } else if ("LOCAL".equals(user.getAuthProvider())) {
-                throw new RuntimeException("Email đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng email khác.");
-            } else {
-                throw new RuntimeException("Email đã được đăng ký, vui lòng đăng ký email khác.");
-            }
-        } else {
-            Role defaultRole = roleRepository.findByRoleName("USER")
-                    .orElseGet(() -> {
-                        Role newRole = new Role();
-                        newRole.setRoleName("USER");
-                        newRole.setDescription("Người dùng thông thường");
-                        return roleRepository.save(newRole);
-                    });
+        User user = userRepository.findByEmail(email)
+                .map(existingUser -> {
+                    if ("GOOGLE".equals(existingUser.getAuthProvider()) && googleId.equals(existingUser.getProviderId())) {
+                        return existingUser;
+                    } else if ("LOCAL".equals(existingUser.getAuthProvider())) {
+                        throw new RuntimeException("Email đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng email khác.");
+                    } else {
+                        throw new RuntimeException("Email đã được đăng ký, vui lòng đăng ký email khác.");
+                    }
+                })
+                .orElseGet(() -> {
+                    Role defaultRole = roleRepository.findByRoleName("USER")
+                            .orElseGet(() -> {
+                                Role newRole = new Role();
+                                newRole.setRoleName("USER");
+                                newRole.setDescription("Người dùng thông thường");
+                                return roleRepository.save(newRole);
+                            });
 
-            String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+                    String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
-            User newUser = User.builder()
-                    .userPublicId(UUID.randomUUID().toString())
-                    .userName(userName)
-                    .password(dummyPassword)
-                    .fullName(fullName)
-                    .email(email)
-                    .phone(null)
-                    .registrationDate(LocalDateTime.now())
-                    .role(defaultRole)
-                    .status("active")
-                    .isEmailVerified(true)
-                    .authProvider("GOOGLE")
-                    .providerId(googleId)
-                    .build();
+                    User newUser = User.builder()
+                            .userPublicId(UUID.randomUUID().toString())
+                            .userName(userName)
+                            .password(dummyPassword)
+                            .fullName(fullName)
+                            .email(email)
+                            .phone(null)
+                            .registrationDate(LocalDateTime.now())
+                            .role(defaultRole)
+                            .status("active")
+                            .isEmailVerified(true)
+                            .authProvider("GOOGLE")
+                            .providerId(googleId)
+                            .build();
 
-            return userRepository.save(newUser);
-        }
+                    return userRepository.save(newUser);
+                });
+
+        // 👉 Sau khi có user, sinh token
+        String accessToken = tokenService.generateAccessToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user); // 🔥 Thêm refresh token
+
+        return new AuthResponse(
+                user.getUserId(),
+                user.getUserPublicId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole().getRoleName(),
+                user.getStatus(),
+                accessToken,
+                "Bearer",
+                refreshToken // ✅ thêm field này trong AuthResponse
+        );
     }
 
     /**
@@ -258,19 +274,15 @@ public class AuthService {
      */
     @Transactional(readOnly = true)
     public AuthResponse login(@Valid LoginRequest loginRequest) {
-
-        /* 1. Tìm user theo email HOẶC username */
         User user = userRepository.findByUserName(loginRequest.getLogin())
                 .or(() -> userRepository.findByEmail(loginRequest.getLogin()))
                 .orElseThrow(() ->
                         new RuntimeException("Không tìm thấy người dùng với định danh: " + loginRequest.getLogin()));
 
-        /* 2. Kiểm tra mật khẩu */
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu không chính xác.");
         }
 
-        /* 3. (Tuỳ chọn) Kiểm tra trạng thái & email đã xác thực */
         if (!"active".equalsIgnoreCase(user.getStatus())) {
             throw new RuntimeException("Tài khoản đã bị khoá hoặc không hoạt động.");
         }
@@ -278,10 +290,13 @@ public class AuthService {
             throw new RuntimeException("Email chưa được xác thực.");
         }
 
-        /* 4. Sinh JWT (dùng method generateToken đã có trong AuthService) */
-        String token = tokenService.generateToken(user);
+        // ✅ Sinh Access Token
+        String accessToken = tokenService.generateAccessToken(user);
 
-        /* 5. Trả về AuthResponse */
+        // ✅ Sinh Refresh Token
+        String refreshToken = tokenService.generateRefreshToken(user);
+
+        // ✅ Trả về kèm refreshToken
         return new AuthResponse(
                 user.getUserId(),
                 user.getUserPublicId(),
@@ -289,8 +304,9 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole().getRoleName(),
                 user.getStatus(),
-                token,
-                "Bearer"    // ✅ thêm dòng này nếu constructor có đủ tham số
+                accessToken,
+                "Bearer",
+                refreshToken
         );
     }
 
