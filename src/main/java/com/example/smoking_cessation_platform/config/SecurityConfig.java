@@ -69,7 +69,8 @@ public class SecurityConfig {
                                 "/api/auth/google",
                                 "/api/payment/vnpay-return",
                                 "/api/auth/forgot-password",
-                                "/api/auth/reset-password"// giữ nguyên permitAll
+                                "/api/auth/reset-password",// giữ nguyên permitAll
+                                "/api/auth/refresh"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 fix lỗi preflig
 
@@ -165,6 +166,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/chat/sessions/{id}").hasAnyRole("USER", "COACH")
                         .requestMatchers(HttpMethod.GET, "/api/chat/sessions/{id}/messages").hasAnyRole("USER", "COACH")
                         .requestMatchers(HttpMethod.POST, "/api/chat/sessions").hasRole("USER")
+
+                        //AdminStatus
+                        .requestMatchers("/api/admin/dashboard/**").hasRole("ADMIN")
+
+                        //User select coach
+                        .requestMatchers(HttpMethod.GET,"/api/coach").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/coach/{id}").hasRole("USER")
 
                         // 13️ Mặc định: phải login
                         .requestMatchers(HttpMethod.GET, "/api/coach/**").permitAll()
