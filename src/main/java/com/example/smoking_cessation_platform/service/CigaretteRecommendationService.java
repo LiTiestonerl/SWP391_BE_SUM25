@@ -3,6 +3,8 @@ package com.example.smoking_cessation_platform.service;
 import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageDTO;
 import com.example.smoking_cessation_platform.dto.CigarettePackage.RecommendationResponse;
 import com.example.smoking_cessation_platform.entity.CigarettePackage;
+import com.example.smoking_cessation_platform.repository.CigarettePackageRepository;
+import com.example.smoking_cessation_platform.repository.CigaretteRecommendationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,33 +16,35 @@ import java.util.stream.Collectors;
 public class CigaretteRecommendationService {
 
     @Autowired
-    private CigarettePackageService cigarettePackageService;
+    private CigarettePackageRepository cigarettePackageRepository;
 
     /**
      * Lấy danh sách gợi ý cho 1 gói thuốc cụ thể – các gói có nicotine thấp hơn.
      */
     public List<RecommendationResponse> getRecommendationsFrom(Long fromPackageId) {
-        CigarettePackage current = cigarettePackageService.getPackageId(fromPackageId);
-        List<CigarettePackage> all = cigarettePackageService.getAllPackages();
+        CigarettePackage current = cigarettePackageRepository.findById(fromPackageId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy gói thuốc"));
 
-        return all.stream()
-                .filter(p -> p.getNicotineMg() != null && p.getNicotineMg() < current.getNicotineMg())
+        return cigarettePackageRepository.findAll().stream()
+                .filter(pkg -> pkg.getNicotineMg() != null
+                        && current.getNicotineMg() != null
+                        && pkg.getNicotineMg() < current.getNicotineMg())
                 .sorted(Comparator.comparing(CigarettePackage::getNicotineMg))
                 .limit(5)
-                .map(p -> RecommendationResponse.builder()
-                        .recId(null)                // Không có ID bản ghi recommendation
-                        .fromPackageId(fromPackageId)   // Gói gốc
-                        .toPackageId(p.getCigaretteId()) // Gói gợi ý
-                        .notes(null)                // Không có ghi chú
+                .map(pkg -> RecommendationResponse.builder()
+                        .recId(null) // vì không lưu DB
+                        .fromPackageId(fromPackageId)
+                        .toPackageId(pkg.getCigaretteId())
+                        .notes(null)
                         .toPackageDetail(CigarettePackageDTO.builder()
-                                .cigaretteId(p.getCigaretteId())
-                                .cigaretteName(p.getCigaretteName())
-                                .price(p.getPrice())
-                                .brand(p.getBrand())
-                                .nicoteneStrength(p.getNicoteneStrength())
-                                .flavor(p.getFlavor())
-                                .sticksPerPack(p.getSticksPerPack())
-                                .nicotineMg(p.getNicotineMg())
+                                .cigaretteId(pkg.getCigaretteId())
+                                .cigaretteName(pkg.getCigaretteName())
+                                .price(pkg.getPrice())
+                                .brand(pkg.getBrand())
+                                .nicoteneStrength(pkg.getNicoteneStrength())
+                                .flavor(pkg.getFlavor())
+                                .sticksPerPack(pkg.getSticksPerPack())
+                                .nicotineMg(pkg.getNicotineMg())
                                 .build())
                         .build())
                 .collect(Collectors.toList());

@@ -16,4 +16,6 @@ public interface QuitPlanRepository extends JpaRepository<QuitPlan, Integer>, Jp
     List<QuitPlan> findByCoachIsNull();
 
     List<QuitPlan> findByUser_UserId(Long userId);
+
+    long countByStatus(QuitPlanStatus quitPlanStatus);
 }
