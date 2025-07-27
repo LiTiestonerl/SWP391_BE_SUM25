@@ -1,7 +1,7 @@
 package com.example.smoking_cessation_platform.controller;
 
-import com.example.smoking_cessation_platform.dto.memberpackage.MemberPackageRequest;
-import com.example.smoking_cessation_platform.dto.memberpackage.MemberPackageResponse;
+import com.example.smoking_cessation_platform.dto.memberPackage.MemberPackageRequest;
+import com.example.smoking_cessation_platform.dto.memberPackage.MemberPackageResponse;
 import com.example.smoking_cessation_platform.service.MemberPackageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
