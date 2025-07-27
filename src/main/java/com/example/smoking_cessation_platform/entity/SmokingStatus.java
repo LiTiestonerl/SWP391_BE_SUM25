@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.entity;
 
+import com.example.smoking_cessation_platform.enums.NicotineStrength;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"recommendations", "user", "cigarettePackage"})
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "smoking_status")
@@ -37,10 +38,11 @@ public class SmokingStatus implements Serializable {
     private String frequency;
 
     @Column(name = "preferred_flavor")
-    private String preferredFlavor; // Tobacco, Menthol, etc.
+    private String preferredFlavor;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "preferred_nicotine_level")
-    private String preferredNicotineLevel; // LOW, MEDIUM, HIGH
+    private NicotineStrength preferredNicotineLevel; // LOW, MEDIUM, HIGH, ZERO
 
     @Column(name = "record_date")
     private LocalDate recordDate;

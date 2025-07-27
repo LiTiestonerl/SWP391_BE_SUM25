@@ -1,8 +1,8 @@
 package com.example.smoking_cessation_platform.service;
 
 import com.example.smoking_cessation_platform.entity.MemberPackage;
-import com.example.smoking_cessation_platform.dto.memberpackage.MemberPackageRequest;
-import com.example.smoking_cessation_platform.dto.memberpackage.MemberPackageResponse;
+import com.example.smoking_cessation_platform.dto.memberPackage.MemberPackageRequest;
+import com.example.smoking_cessation_platform.dto.memberPackage.MemberPackageResponse;
 import com.example.smoking_cessation_platform.repository.MemberPackageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

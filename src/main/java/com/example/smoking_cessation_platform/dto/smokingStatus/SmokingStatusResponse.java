@@ -1,5 +1,6 @@
-package com.example.smoking_cessation_platform.dto.smokingstatus;
+package com.example.smoking_cessation_platform.dto.smokingStatus;
 
+import com.example.smoking_cessation_platform.enums.NicotineStrength;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +18,7 @@ public class SmokingStatusResponse {
     private Integer cigarettesPerDay;
     private String frequency;
     private String preferredFlavor;
-    private String preferredNicotineLevel;
+    private NicotineStrength preferredNicotineLevel;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate recordDate;
