@@ -1,5 +1,6 @@
-package com.example.smoking_cessation_platform.dto.cigarettepackage;
+package com.example.smoking_cessation_platform.dto.cigarettePackage;
 
+import com.example.smoking_cessation_platform.enums.NicotineStrength;
 import lombok.*;
 import java.math.BigDecimal;
 
@@ -17,7 +18,7 @@ public class CigarettePackageResponse {
 
     private String flavor;
 
-    private String nicotineLevel;
+    private NicotineStrength nicotineLevel;
 
     private Integer sticksPerPack;
 

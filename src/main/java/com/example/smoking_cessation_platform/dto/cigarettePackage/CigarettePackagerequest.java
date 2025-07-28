@@ -1,5 +1,6 @@
-package com.example.smoking_cessation_platform.dto.cigarettepackage;
+package com.example.smoking_cessation_platform.dto.cigarettePackage;
 
+import com.example.smoking_cessation_platform.enums.NicotineStrength;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -29,10 +30,8 @@ public class CigarettePackagerequest {
             message = "Hương vị phải là một trong: MENTHOL, VANILLA, CHERRY, CHOCOLATE, ORIGINAL, MINT")
     private String flavor;
 
-    @NotNull(message = "Mức nicotine không được để trống")
-    @Pattern(regexp = "^(HIGH|MEDIUM|LOW|ZERO)$",
-            message = "Mức nicotine phải là một trong: HIGH, MEDIUM, LOW, ZERO")
-    private String nicoteneStrength;
+    @NotNull(message = "Cường độ nicotine không được để trống")
+    private NicotineStrength nicoteneStrength;
 
     @NotNull(message = "Số điếu thuốc trong mỗi gói không được để trống")
     private Integer sticksPerPack;

@@ -1,5 +1,6 @@
-package com.example.smoking_cessation_platform.dto.smokingstatus;
+package com.example.smoking_cessation_platform.dto.smokingStatus;
 
+import com.example.smoking_cessation_platform.enums.NicotineStrength;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -32,9 +33,7 @@ public class SmokingStatusRequest {
     private String preferredFlavor;
 
     @NotNull(message = "Mức nicotine ưa thích không được để trống")
-    @Pattern(regexp = "^(HIGH|MEDIUM|LOW|ZERO)$",
-            message = "Mức nicotine phải là một trong: HIGH, MEDIUM, LOW, ZERO")
-    private String preferredNicotineLevel;
+    private NicotineStrength preferredNicotineLevel;
 
     private Long packageId;
 

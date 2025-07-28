@@ -1,4 +1,4 @@
-package com.example.smoking_cessation_platform.dto.memberpackage;
+package com.example.smoking_cessation_platform.dto.memberPackage;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;

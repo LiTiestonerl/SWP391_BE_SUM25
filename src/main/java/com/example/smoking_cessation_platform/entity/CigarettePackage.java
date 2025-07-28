@@ -1,6 +1,7 @@
 package com.example.smoking_cessation_platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.example.smoking_cessation_platform.enums.NicotineStrength;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,17 +39,15 @@ public class CigarettePackage implements Serializable {
     @Column(name = "brand", nullable = false)
     private String brand;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "nicotene_strength", nullable = false)
-    private String nicoteneStrength;
+    private NicotineStrength nicoteneStrength;
 
     @Column(name = "flavor", nullable = false)
     private String flavor;
 
     @Column(name = "sticks_per_pack", nullable = false)
     private Integer sticksPerPack;
-
-    @Column(name = "nicotine_mg")
-    private Double nicotineMg;
 
     @OneToMany(mappedBy = "cigarettePackage", fetch = FetchType.LAZY)
     private Set<SmokingStatus> smokingStatuses = new HashSet<>();
