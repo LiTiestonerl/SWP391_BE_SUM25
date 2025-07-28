@@ -130,7 +130,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/user_badge/**").hasRole("USER")
 
                         //Notification
-                        .requestMatchers(HttpMethod.POST, "/api/notifications").hasAnyRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/notifications").hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/notifications/me").hasAnyRole("USER")
 
                         //Rating
@@ -173,6 +173,15 @@ public class SecurityConfig {
                         //User select coach
                         .requestMatchers(HttpMethod.GET,"/api/coach").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/api/coach/{id}").hasRole("USER")
+
+                        //User profile
+                        .requestMatchers(HttpMethod.PUT, "/api/user/profile").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/user/profile/{userId}").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/user/profile/public/{userPublicId}").authenticated()
+
+                        //User member package
+                        .requestMatchers(HttpMethod.GET,"/api/user-membership/me").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE,"/api/user-membership/me").hasRole("USER")
 
                         // 13️ Mặc định: phải login
                         .requestMatchers(HttpMethod.GET, "/api/coach/**").permitAll()

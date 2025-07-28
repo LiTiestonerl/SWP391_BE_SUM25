@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,11 +24,13 @@ public class NotificationController {
 
     @Operation(summary = "Tạo thông báo mới")
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<NotificationResponse> create(@RequestBody NotificationRequest request) {
         return ResponseEntity.ok(notificationService.create(request));
     }
     @Operation(summary = "Lấy danh sách thông báo theo user")
     @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<NotificationResponse>> getMyNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long currentUserId = userDetails.getUserId(); // hoặc getUserId()
         return ResponseEntity.ok(notificationService.getByUser(currentUserId));
