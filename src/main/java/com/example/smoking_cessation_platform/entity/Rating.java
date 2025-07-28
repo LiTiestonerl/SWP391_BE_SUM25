@@ -39,6 +39,9 @@ public class Rating implements Serializable {
     @Column(name = "feedback_text", columnDefinition = "TEXT")
     private String feedbackText;
 
+    @Column(name = "rating_type")
+    private String ratingType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private User member;
@@ -50,4 +53,8 @@ public class Rating implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id", nullable = false)
     private QuitPlan quitPlan;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
 }

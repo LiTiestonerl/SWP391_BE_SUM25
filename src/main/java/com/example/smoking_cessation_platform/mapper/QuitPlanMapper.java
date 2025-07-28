@@ -111,11 +111,4 @@ public class QuitPlanMapper {
 
         return response;
     }
-
-    // 3. Convert từ entity sang response (kèm nicotineSuggestions)
-    public QuitPlanResponse toResponse(QuitPlan plan, List<CigarettePackageDTO> nicotineSuggestions) {
-        QuitPlanResponse response = toResponse(plan);
-        response.setNicotineSuggestions(nicotineSuggestions);
-        return response;
-    }
 }

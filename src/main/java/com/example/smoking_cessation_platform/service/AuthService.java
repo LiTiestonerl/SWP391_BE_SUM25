@@ -47,6 +47,9 @@ public class AuthService {
     @Autowired
     private TokenService tokenService;
 
+    @Autowired
+    private UserMemberService userMemberService;
+
     private final Random random = new Random();
 
     @Value("${google.client.id}")
@@ -100,6 +103,7 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(newUser);
+        userMemberService.assignFreePackageToUser(savedUser);
 
         sendEmailVerificationOtp(savedUser);
 
@@ -245,7 +249,10 @@ public class AuthService {
                             .providerId(googleId)
                             .build();
 
-                    return userRepository.save(newUser);
+                    User savedUser = userRepository.save(newUser);
+                    userMemberService.assignFreePackageToUser(savedUser);
+
+                    return savedUser;
                 });
 
         // 👉 Sau khi có user, sinh token

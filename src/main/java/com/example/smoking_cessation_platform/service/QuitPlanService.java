@@ -64,6 +64,11 @@ public class QuitPlanService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", request.getUserId()));
 
+        boolean hasSmokingStatus = smokingStatusRepository.existsByUser_UserId(request.getUserId());
+        if (!hasSmokingStatus) {
+            throw new RuntimeException("Vui lòng cập nhật tình trạng hút thuốc (Smoking Status) trước khi tạo kế hoạch.");
+        }
+
         // 2. Kiểm tra nếu user KHÔNG phải ADMIN và đã có kế hoạch đang hoạt động
         if (!"ADMIN".equalsIgnoreCase(user.getRole().getRoleName())) {
             quitPlanRepository.findFirstByUser_UserIdAndStatus(request.getUserId(), QuitPlanStatus.IN_PROGRESS)
@@ -90,28 +95,11 @@ public class QuitPlanService {
                 .findTopByUser_UserIdOrderByRecordDateDesc(request.getUserId())
                 .orElse(null);
 
-        // 6. Gán gói được đề xuất từ cigarette_recommendation
-        List<CigarettePackageDTO> suggestions = new ArrayList<>();
-        if (smokingStatus != null && smokingStatus.getCigarettePackage() != null) {
-            List<CigaretteRecommendation> recs = cigaretteRecommendationRepository
-                    .findByFromPackage(smokingStatus.getCigarettePackage());
 
-            if (!recs.isEmpty()) {
-                CigarettePackage recommended = recs.get(0).getToPackage();
-                plan.setRecommendedPackage(recommended);
-
-                // Gợi ý dạng DTO
-                suggestions = recs.stream()
-                        .map(RecommendationMapper::toPackageDTO)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-            }
-        }
-
-        // 7. Lưu kế hoạch
+        // 6. Lưu kế hoạch
         plan = quitPlanRepository.save(plan);
 
-        // 8. Tạo danh sách stage và progress
+        // 7. Tạo danh sách stage và progress
         int cigarettesPerDay = smokingStatus != null && smokingStatus.getCigarettesPerDay() != null
                 ? smokingStatus.getCigarettesPerDay()
                 : 10;
@@ -129,8 +117,8 @@ public class QuitPlanService {
 
         plan.setQuitPlanStages(new HashSet<>(stages));
 
-        // 9. Trả về response
-        return quitPlanMapper.toResponse(plan, suggestions);
+        // 8. Trả về response (không còn suggestions)
+        return quitPlanMapper.toResponse(plan);
     }
 
 

@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -92,6 +93,22 @@ public class PaymentTransactionService {
     }
 
     private void grantMemberPackage(User user, MemberPackage memberPackage) {
+        // Lấy danh sách gói đang active
+        List<UserMemberPackage> activePackages = userMemberPackageRepository.findByUser_UserIdAndStatus(user.getUserId(), "active");
+
+        for (UserMemberPackage ump : activePackages) {
+            BigDecimal currentPrice = ump.getMemberPackage().getPrice();
+            BigDecimal newPrice = memberPackage.getPrice();
+
+            // Nếu gói hiện tại đang active có giá cao hơn gói mới => chặn downgrade
+            if (currentPrice.compareTo(newPrice) > 0) {
+                throw new IllegalStateException("Bạn đang sở hữu gói có giá cao hơn, không thể mua gói thấp hơn.");
+            }
+        }
+
+        // Vô hiệu hoá tất cả gói active hiện tại
+        userMemberPackageRepository.deactivateAllByUser(user.getUserId());
+
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusMonths(memberPackage.getDuration());
 

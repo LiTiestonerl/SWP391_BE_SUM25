@@ -16,4 +16,5 @@ public interface SmokingStatusRepository extends JpaRepository<SmokingStatus, In
 
     SmokingStatus findByUser_UserId(Long userId);
 
+    boolean existsByUser_UserId(Long userId);
 }

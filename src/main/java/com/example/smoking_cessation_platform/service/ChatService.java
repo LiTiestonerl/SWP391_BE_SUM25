@@ -3,9 +3,7 @@ package com.example.smoking_cessation_platform.service;
 import com.example.smoking_cessation_platform.dto.chatmessage.ChatMessageDTO;
 import com.example.smoking_cessation_platform.dto.chatmessage.ChatSessionRequest;
 import com.example.smoking_cessation_platform.dto.chatmessage.ChatSessionResponse;
-import com.example.smoking_cessation_platform.entity.ChatMessage;
-import com.example.smoking_cessation_platform.entity.ChatSession;
-import com.example.smoking_cessation_platform.entity.User;
+import com.example.smoking_cessation_platform.entity.*;
 import com.example.smoking_cessation_platform.mapper.ChatMapper;
 import com.example.smoking_cessation_platform.repository.ChatMessageRepository;
 import com.example.smoking_cessation_platform.repository.ChatSessionRepository;
@@ -116,13 +114,28 @@ public class ChatService {
         User coach = userRepository.findById(request.getCoachId())
                 .orElseThrow(() -> new RuntimeException("Coach not found"));
 
-        boolean canChat = userMemberPackageRepository
-                .existsByUser_UserIdAndMemberPackage_SupportedCoaches_UserIdAndStatusIgnoreCase(
-                        request.getUserId(), request.getCoachId(), "active");
-        if (!canChat) {
-            throw new RuntimeException("User chưa thanh toán gói, không thể chat với coach.");
+        // 2. Lấy gói active của user
+        UserMemberPackage ump = userMemberPackageRepository
+                .findFirstByUser_UserIdAndStatusOrderByStartDateDesc(request.getUserId(), "active")
+                .orElseThrow(() -> new RuntimeException("User chưa có gói active"));
+
+        MemberPackage memberPackage = ump.getMemberPackage();
+
+        // 3. Kiểm tra gói có hỗ trợ chat không
+        String packageName = memberPackage.getPackageName(); // ví dụ: "Free", "Health+", "Health Pro"
+        if (!(packageName.equalsIgnoreCase("Health+") || packageName.equalsIgnoreCase("Health Pro"))) {
+            throw new RuntimeException("Gói hiện tại (" + packageName + ") không hỗ trợ chat với coach.");
         }
 
+        // 4. Kiểm tra coach có nằm trong danh sách hỗ trợ không
+        boolean supportedCoach = memberPackage.getSupportedCoaches().stream()
+                .anyMatch(c -> c.getUserId().equals(request.getCoachId()));
+
+        if (!supportedCoach) {
+            throw new RuntimeException("Coach này không được gói hiện tại hỗ trợ.");
+        }
+
+        // 5. Tạo session
         ChatSession session = ChatSession.builder()
                 .user(user)
                 .coach(coach)
@@ -131,6 +144,7 @@ public class ChatService {
                 .build();
 
         chatSessionRepository.save(session);
+
         return chatMapper.toSessionResponse(session);
     }
 }

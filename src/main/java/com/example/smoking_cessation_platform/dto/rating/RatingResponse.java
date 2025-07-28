@@ -11,12 +11,17 @@ import java.time.LocalDateTime;
 public class RatingResponse {
     private Integer ratingId;
     private Integer ratingValue;
-    private LocalDateTime ratingDate;
     private String feedbackText;
+    private String ratingType;
+    private LocalDateTime ratingDate;
     private String status;
 
     private Long memberId;
     private String memberName;
+
+    // Thêm các ID tùy loại
+    private Integer postId;
+    private String postTitle;
 
     private Long coachId;
     private String coachName;

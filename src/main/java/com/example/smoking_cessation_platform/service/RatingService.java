@@ -11,7 +11,10 @@ import com.example.smoking_cessation_platform.repository.QuitPlanRepository;
 import com.example.smoking_cessation_platform.repository.RatingRepository;
 import com.example.smoking_cessation_platform.repository.UserMemberPackageRepository;
 import com.example.smoking_cessation_platform.repository.UserRepository;
+import com.example.smoking_cessation_platform.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +50,11 @@ public class RatingService {
      */
     @Transactional
     public RatingResponse createRating(RatingRequest request) {
+        // Lấy ID user hiện tại từ SecurityContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long currentUserId = userDetails.getUserId();
+
         // 1. Tìm kế hoạch theo ID
         QuitPlan plan = quitPlanRepository.findById(request.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Kế hoạch không tồn tại."));
@@ -57,12 +65,12 @@ public class RatingService {
         }
 
         // 3. Kiểm tra người gửi đánh giá có phải chủ kế hoạch không
-        if (!plan.getUser().getUserId().equals(request.getMemberId())) {
+        if (!plan.getUser().getUserId().equals(currentUserId)) {
             throw new SecurityException("Bạn không phải chủ kế hoạch này.");
         }
 
         // 4. Kiểm tra đã từng đánh giá kế hoạch này chưa
-        if (ratingRepository.existsByMemberUserIdAndQuitPlanPlanId(request.getMemberId(), request.getPlanId())) {
+        if (ratingRepository.existsByMemberUserIdAndQuitPlanPlanId(currentUserId, request.getPlanId())) {
             throw new IllegalStateException("Bạn đã đánh giá kế hoạch này rồi.");
         }
 
@@ -86,7 +94,7 @@ public class RatingService {
                 .ratingValue(request.getRatingValue())
                 .feedbackText(request.getFeedbackText())
                 .ratingDate(LocalDateTime.now())
-                .status("active") // Mặc định trạng thái là active
+                .status("active")
                 .member(member)
                 .coach(coach)
                 .quitPlan(plan)

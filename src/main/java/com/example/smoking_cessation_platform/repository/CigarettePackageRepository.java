@@ -11,7 +11,6 @@ import java.util.Optional;
 @Repository
 public interface CigarettePackageRepository extends JpaRepository<CigarettePackage, Long>, JpaSpecificationExecutor<CigarettePackage> {
 
-    Optional<CigarettePackage> findByPriceAndFlavorAndNicoteneStrength(BigDecimal price, String flavor, String nicoteneStrength);
 
     boolean existsByCigaretteName(String cigaretteName);
 }
