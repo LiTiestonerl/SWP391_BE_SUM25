@@ -1,8 +1,8 @@
 package com.example.smoking_cessation_platform.controller;
 
 
-import com.example.smoking_cessation_platform.dto.cigarettePackage.CigarettePackageResponse;
-import com.example.smoking_cessation_platform.dto.cigarettePackage.CigarettePackagerequest;
+import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageResponse;
+import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackagerequest;
 import com.example.smoking_cessation_platform.service.CigarettePackageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;

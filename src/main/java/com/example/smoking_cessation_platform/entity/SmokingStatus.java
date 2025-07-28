@@ -1,6 +1,6 @@
 package com.example.smoking_cessation_platform.entity;
 
-import com.example.smoking_cessation_platform.enums.NicotineStrength;
+import com.example.smoking_cessation_platform.Enum.NicotineStrength;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,9 +9,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 

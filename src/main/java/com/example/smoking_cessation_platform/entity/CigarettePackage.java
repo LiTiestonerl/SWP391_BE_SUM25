@@ -1,7 +1,7 @@
 package com.example.smoking_cessation_platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.example.smoking_cessation_platform.enums.NicotineStrength;
+import com.example.smoking_cessation_platform.Enum.NicotineStrength;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,7 +1,7 @@
 package com.example.smoking_cessation_platform.service;
 
-import com.example.smoking_cessation_platform.dto.cigarettePackage.CigarettePackageResponse;
-import com.example.smoking_cessation_platform.dto.cigarettePackage.CigarettePackagerequest;
+import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageResponse;
+import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackagerequest;
 import com.example.smoking_cessation_platform.entity.CigarettePackage;
 import com.example.smoking_cessation_platform.repository.CigarettePackageRepository;
 import com.example.smoking_cessation_platform.repository.CigaretteRecommendationRepository;

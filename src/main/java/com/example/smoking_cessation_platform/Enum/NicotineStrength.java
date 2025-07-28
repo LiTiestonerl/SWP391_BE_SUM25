@@ -1,4 +1,4 @@
-package com.example.smoking_cessation_platform.enums;  // Đặt trong thư mục enum
+package com.example.smoking_cessation_platform.Enum;  // Đặt trong thư mục enum
 
 public enum NicotineStrength {
     ZERO, LOW, MEDIUM, HIGH;

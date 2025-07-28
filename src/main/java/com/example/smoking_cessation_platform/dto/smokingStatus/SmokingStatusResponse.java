@@ -1,6 +1,6 @@
 package com.example.smoking_cessation_platform.dto.smokingStatus;
 
-import com.example.smoking_cessation_platform.enums.NicotineStrength;
+import com.example.smoking_cessation_platform.Enum.NicotineStrength;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

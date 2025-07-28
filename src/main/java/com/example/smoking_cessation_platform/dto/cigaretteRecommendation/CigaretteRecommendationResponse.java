@@ -1,6 +1,6 @@
 package com.example.smoking_cessation_platform.dto.cigaretteRecommendation;
 
-import com.example.smoking_cessation_platform.enums.NicotineStrength;
+import com.example.smoking_cessation_platform.Enum.NicotineStrength;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

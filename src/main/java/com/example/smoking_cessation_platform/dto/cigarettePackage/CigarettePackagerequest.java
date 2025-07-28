@@ -1,6 +1,6 @@
-package com.example.smoking_cessation_platform.dto.cigarettePackage;
+package com.example.smoking_cessation_platform.dto.CigarettePackage;
 
-import com.example.smoking_cessation_platform.enums.NicotineStrength;
+import com.example.smoking_cessation_platform.Enum.NicotineStrength;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -35,6 +35,5 @@ public class CigarettePackagerequest {
 
     @NotNull(message = "Số điếu thuốc trong mỗi gói không được để trống")
     private Integer sticksPerPack;
-
 
 }

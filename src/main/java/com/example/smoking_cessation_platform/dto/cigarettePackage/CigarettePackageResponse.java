@@ -1,6 +1,6 @@
-package com.example.smoking_cessation_platform.dto.cigarettePackage;
+package com.example.smoking_cessation_platform.dto.CigarettePackage;
 
-import com.example.smoking_cessation_platform.enums.NicotineStrength;
+import com.example.smoking_cessation_platform.Enum.NicotineStrength;
 import lombok.*;
 import java.math.BigDecimal;
 
