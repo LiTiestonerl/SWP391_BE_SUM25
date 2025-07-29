@@ -67,7 +67,7 @@ public class CigaretteRecommendationController {
 
     @GetMapping("/by-smoking-status/{smokingStatusId}")
     public ResponseEntity<List<CigaretteRecommendationResponse>> getRecommendationsBySmokingStatus(
-            @PathVariable Long smokingStatusId) {
+            @PathVariable Integer smokingStatusId) {
         List<CigaretteRecommendationResponse> recommendations =
                 recommendationService.getRecommendationsBySmokingStatus(smokingStatusId);
         return ResponseEntity.ok(recommendations);
