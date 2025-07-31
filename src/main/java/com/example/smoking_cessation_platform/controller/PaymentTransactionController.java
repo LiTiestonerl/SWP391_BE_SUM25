@@ -71,8 +71,15 @@ public class PaymentTransactionController {
      */
     @GetMapping("/status")
     @PreAuthorize("hasAnyRole('USER')")
-    public ResponseEntity<?> checkPaymentStatus(@RequestParam String txnRef) {
-        Optional<PaymentTransaction> txOpt = paymentTransactionService.verifyAndProcessTransaction(txnRef);
+    public ResponseEntity<?> checkPaymentStatus(
+            @RequestParam String txnRef,
+            @RequestParam(name = "vnp_ResponseCode", required = false) String responseCode
+    ) {
+        if (responseCode == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Thiếu mã phản hồi từ VNPay (vnp_ResponseCode)"));
+        }
+
+        Optional<PaymentTransaction> txOpt = paymentTransactionService.verifyAndProcessTransaction(txnRef, responseCode);
         if (txOpt.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Giao dịch không hợp lệ hoặc đã xử lý."));
         }
@@ -83,6 +90,7 @@ public class PaymentTransactionController {
                 "status", tx.getStatus(),
                 "amount", tx.getAmount(),
                 "package", tx.getMemberPackage().getPackageName(),
+                "memberPackageId", tx.getMemberPackage().getMemberPackageId(),
                 "transactionDate", tx.getTransactionDate()
         ));
     }

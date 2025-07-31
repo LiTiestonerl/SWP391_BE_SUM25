@@ -14,6 +14,7 @@ import com.google.api.client.util.Value;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.math.BigDecimal;
@@ -44,6 +45,9 @@ public class PaymentTransactionService {
 
     @Autowired
     private UserMemberPackageRepository userMemberPackageRepository;
+
+    @Autowired
+    private MemberPackageService memberPackageService;
 
     @Value("${integration.vnpay.secret-key}")
     private String hashSecret;
@@ -92,63 +96,30 @@ public class PaymentTransactionService {
         return vnPayProperties.getUrl() + "?" + query + "&vnp_SecureHash=" + secureHash;
     }
 
-    private void grantMemberPackage(User user, MemberPackage memberPackage) {
-        // Lấy danh sách gói đang active
-        List<UserMemberPackage> activePackages = userMemberPackageRepository.findByUser_UserIdAndStatus(user.getUserId(), "active");
 
-        for (UserMemberPackage ump : activePackages) {
-            BigDecimal currentPrice = ump.getMemberPackage().getPrice();
-            BigDecimal newPrice = memberPackage.getPrice();
+    public Optional<PaymentTransaction> verifyAndProcessTransaction(String txnRef, String responseCode) {
+        PaymentTransaction tx = paymentTransactionRepository.findByTxnRef(txnRef)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch với mã: " + txnRef));
 
-            // Nếu gói hiện tại đang active có giá cao hơn gói mới => chặn downgrade
-            if (currentPrice.compareTo(newPrice) > 0) {
-                throw new IllegalStateException("Bạn đang sở hữu gói có giá cao hơn, không thể mua gói thấp hơn.");
-            }
-        }
-
-        // Vô hiệu hoá tất cả gói active hiện tại
-        userMemberPackageRepository.deactivateAllByUser(user.getUserId());
-
-        LocalDate startDate = LocalDate.now();
-        LocalDate endDate = startDate.plusMonths(memberPackage.getDuration());
-
-        UserMemberPackage userMemberPackage = new UserMemberPackage();
-        userMemberPackage.setUser(user);
-        userMemberPackage.setMemberPackage(memberPackage);
-        userMemberPackage.setStartDate(startDate);
-        userMemberPackage.setEndDate(endDate);
-        userMemberPackage.setStatus("active");
-
-        userMemberPackageRepository.save(userMemberPackage);
-    }
-
-    public Optional<PaymentTransaction> verifyAndProcessTransaction(String txnRef) {
-        Optional<PaymentTransaction> optTx = paymentTransactionRepository.findByTxnRef(txnRef);
-        if (optTx.isEmpty()) {
-            return Optional.empty();
-        }
-
-        PaymentTransaction tx = optTx.get();
-
-        // Nếu đã xử lý rồi thì trả luôn
-        if (!"PENDING".equals(tx.getStatus())) {
+        // Nếu không phải PENDING, trả lại luôn giao dịch hiện tại (để FE biết đã xử lý rồi)
+        if (!"PENDING".equalsIgnoreCase(tx.getStatus())) {
             return Optional.of(tx);
         }
 
-        // Optional: Nếu bạn lưu được các `vnp_` params trong DB hoặc truyền từ FE thì nên xác minh lại chữ ký ở đây
-
-        // Giả sử bạn tin tưởng kết quả do VNPay redirect (hoặc đã có `vnp_ResponseCode`)
-        String responseCode = "00"; // Bạn cần truyền thêm từ FE nếu muốn chính xác hơn
-
-        if ("00".equals(responseCode)) {
-            tx.setStatus("SUCCESS");
-            grantMemberPackage(tx.getUser(), tx.getMemberPackage());
-        } else {
+        // Nếu thanh toán thất bại
+        if (!"00".equals(responseCode)) {
             tx.setStatus("FAILED");
+            tx.setTransactionDate(LocalDateTime.now());
+            paymentTransactionRepository.save(tx);
+            return Optional.of(tx);
         }
 
+        // Thanh toán thành công
+        tx.setStatus("SUCCESS");
         tx.setTransactionDate(LocalDateTime.now());
         paymentTransactionRepository.save(tx);
+
+        memberPackageService.grantMemberPackage(tx.getUser(), tx.getMemberPackage());
 
         return Optional.of(tx);
     }
