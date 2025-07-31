@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.entity;
 
+import com.example.smoking_cessation_platform.Enum.RatingType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,18 +41,19 @@ public class Rating implements Serializable {
     private String feedbackText;
 
     @Column(name = "rating_type")
-    private String ratingType;
+    @Enumerated(EnumType.STRING)
+    private RatingType ratingType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id")
     private User member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coach_id", nullable = false)
+    @JoinColumn(name = "coach_id")
     private User coach;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
+    @JoinColumn(name = "plan_id")
     private QuitPlan quitPlan;
 
     @ManyToOne(fetch = FetchType.LAZY)

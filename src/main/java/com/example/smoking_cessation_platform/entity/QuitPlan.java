@@ -53,6 +53,9 @@ public class QuitPlan implements Serializable {
     @Column(name = "custom_notes", columnDefinition = "TEXT")
     private String customNotes;
 
+    @Column(name = "cigarettes_per_day")
+    private Integer cigarettesPerDay;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

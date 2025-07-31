@@ -112,11 +112,22 @@ public class SecurityConfig {
 
 
                         // Gói thuốc (public GET, hạn chế POST/PUT/DELETE)
-                        .requestMatchers(HttpMethod.GET,"/api/cigarette-packages/{id}").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/cigarette-packages").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/cigarette-packages").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/cigarette-packages/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/cigarette-packages/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/cigarette-packages/{cigaretteId}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cigarette-packages/{cigaretteId}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/cigarette-packages/**").hasAnyRole("ADMIN", "USER")
+
+                        // CigaretteRecommendation
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-recommendations/{recId}").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-recommendations/for-cigarette/{cigaretteId}").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-recommendations/lighter-nicotine/{cigaretteId}").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-recommendations/same-flavor/{cigaretteId}").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-recommendations/same-brand-lighter/{cigaretteId}").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-recommendations/best/{cigaretteId}").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-recommendations/by-smoking-status/{smokingStatusId}").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET,"/api/cigarette-recommendations/all").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.PATCH,"/api/cigarette-recommendations/admin/{recId}/toggle-active").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,"/api/cigarette-recommendations/admin/{recId}/priority").hasRole("ADMIN")
 
                         //AchievementBadge
                         .requestMatchers(HttpMethod.POST, "/api/achievement-badge").hasRole("ADMIN")
@@ -132,6 +143,8 @@ public class SecurityConfig {
                         //Notification
                         .requestMatchers(HttpMethod.POST, "/api/notifications").hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/notifications/me").hasAnyRole("USER")
+                        .requestMatchers(HttpMethod.PUT,"/api/notifications/{id}/read").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE,"/api/notifications/{id}").hasRole("USER")
 
                         //Rating
                         .requestMatchers(HttpMethod.POST,"/api/rating").hasRole("USER")
@@ -153,6 +166,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,"/api/quit-plan/{planId}/complete").authenticated()
 
                         .requestMatchers(HttpMethod.DELETE, "/api/quit-plan/{planId}/user/{userId}").hasAnyRole("USER","ADMIN")
+
+                        //Quit Progress
+                        .requestMatchers(HttpMethod.PUT,"/api/quit-progress/update").hasAnyRole("USER","ADMIN")
 
                         // Smoking Status endpoints
                         .requestMatchers(HttpMethod.POST, "/api/smoking-status").hasRole("USER")

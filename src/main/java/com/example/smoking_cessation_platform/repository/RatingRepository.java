@@ -12,4 +12,7 @@ public interface RatingRepository extends JpaRepository<Rating, Integer>, JpaSpe
     List<Rating> findByQuitPlanPlanId(Integer planId);
 
     boolean existsByMemberUserIdAndQuitPlanPlanId(Long memberId, Integer planId);;
+
+    boolean existsByMemberUserIdAndCoachUserId(Long memberId, Long coachId);
+    boolean existsByMemberUserIdAndPostPostId(Long memberId, Integer postId);
 }

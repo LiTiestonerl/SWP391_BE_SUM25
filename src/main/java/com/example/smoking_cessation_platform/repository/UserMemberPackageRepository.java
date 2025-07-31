@@ -21,4 +21,10 @@ public interface UserMemberPackageRepository extends JpaRepository<UserMemberPac
     Optional<UserMemberPackage> findFirstByUser_UserIdAndStatusOrderByStartDateDesc(Long userId, String status);
 
     List<UserMemberPackage> findByUser_UserIdAndStatus(Long userId, String status);
+
+    Optional<UserMemberPackage> findFirstByUser_UserIdAndStatusAndMemberPackage_MemberPackageIdNotOrderByStartDateDesc(
+            Long userId, String status, Long excludedPackageId);
+
+    Optional<UserMemberPackage> findFirstByUser_UserIdAndStatusAndMemberPackage_MemberPackageIdOrderByStartDateDesc(
+            Long userId, String status, Long packageId);
 }

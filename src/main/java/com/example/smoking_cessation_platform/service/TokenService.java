@@ -26,14 +26,13 @@ public class TokenService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // 🔹 Tạo Access Token (thời hạn ngắn)
     public String generateAccessToken(User user) {
         List<String> roles = List.of("ROLE_" + user.getRole().getRoleName());
 
         return Jwts.builder()
                 .subject(String.valueOf(user.getUserId()))
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 phút
+                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24))
                 .claim("roles", roles)
                 .signWith(getSigninKey())
                 .compact();
@@ -44,7 +43,7 @@ public class TokenService {
         return Jwts.builder()
                 .subject(String.valueOf(user.getUserId()))
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7)) // 7 ngày
+                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7))
                 .signWith(getSigninKey())
                 .compact();
     }

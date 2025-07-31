@@ -1,15 +1,13 @@
 package com.example.smoking_cessation_platform.service;
 
+import com.example.smoking_cessation_platform.Enum.NotificationStatus;
 import com.example.smoking_cessation_platform.Enum.QuitPlanStatus;
-import com.example.smoking_cessation_platform.dto.CigarettePackage.CigarettePackageDTO;
-import com.example.smoking_cessation_platform.dto.CigarettePackage.RecommendationResponse;
 import com.example.smoking_cessation_platform.dto.quitplan.QuitPlanRequest;
 import com.example.smoking_cessation_platform.dto.quitplan.QuitPlanResponse;
 import com.example.smoking_cessation_platform.entity.*;
 import com.example.smoking_cessation_platform.exception.BusinessException;
 import com.example.smoking_cessation_platform.exception.ResourceNotFoundException;
 import com.example.smoking_cessation_platform.mapper.QuitPlanMapper;
-import com.example.smoking_cessation_platform.mapper.RecommendationMapper;
 import com.example.smoking_cessation_platform.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,50 +62,98 @@ public class QuitPlanService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", request.getUserId()));
 
-        boolean hasSmokingStatus = smokingStatusRepository.existsByUser_UserId(request.getUserId());
-        if (!hasSmokingStatus) {
-            throw new RuntimeException("Vui lòng cập nhật tình trạng hút thuốc (Smoking Status) trước khi tạo kế hoạch.");
-        }
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(user.getRole().getRoleName());
 
-        // 2. Kiểm tra nếu user KHÔNG phải ADMIN và đã có kế hoạch đang hoạt động
-        if (!"ADMIN".equalsIgnoreCase(user.getRole().getRoleName())) {
+        // 2. Chỉ kiểm tra Smoking Status nếu KHÔNG phải ADMIN
+        SmokingStatus smokingStatus = null;
+        if (!isAdmin) {
+            boolean hasSmokingStatus = smokingStatusRepository.existsByUser_UserId(request.getUserId());
+            if (!hasSmokingStatus) {
+                throw new BusinessException("Vui lòng cập nhật tình trạng hút thuốc (Smoking Status) trước khi tạo kế hoạch.");
+            }
+
+            // 3. USER không được có kế hoạch đang hoạt động
             quitPlanRepository.findFirstByUser_UserIdAndStatus(request.getUserId(), QuitPlanStatus.IN_PROGRESS)
                     .ifPresent(p -> {
                         throw new BusinessException("Bạn đã có một kế hoạch đang hoạt động.");
                     });
+
+            // 4. Lấy Smoking Status mới nhất
+            smokingStatus = smokingStatusRepository.findTopByUser_UserIdOrderByRecordDateDesc(request.getUserId())
+                    .orElse(null);
         }
 
-        // 3. Ánh xạ request thành entity và thiết lập thông tin ban đầu
+        // 5. Ánh xạ request -> entity và thiết lập thông tin ban đầu
         QuitPlan plan = quitPlanMapper.toEntity(request);
         plan.setStatus(QuitPlanStatus.IN_PROGRESS);
         plan.setTitle(request.getTitle());
         plan.setUser(user);
 
-        // 4. Nếu là ADMIN thì có thể gán coach
-        if ("ADMIN".equalsIgnoreCase(user.getRole().getRoleName()) && request.getCoachId() != null) {
+        // 6. Gán coach nếu có
+        if (request.getCoachId() != null) {
             User coach = userRepository.findById(request.getCoachId())
                     .orElseThrow(() -> new ResourceNotFoundException("Coach", request.getCoachId()));
+
+            if (!isAdmin) {
+                boolean hasPackage = userMemberPackageRepository
+                        .existsByUser_UserIdAndMemberPackage_SupportedCoaches_UserIdAndStatusIgnoreCase(
+                                user.getUserId(), coach.getUserId(), "active");
+
+                if (!hasPackage) {
+                    throw new BusinessException("Bạn cần mua gói hỗ trợ huấn luyện viên này.");
+                }
+            }
+
             plan.setCoach(coach);
         }
 
-        // 5. Lấy thông tin hút thuốc mới nhất của user
-        SmokingStatus smokingStatus = smokingStatusRepository
-                .findTopByUser_UserIdOrderByRecordDateDesc(request.getUserId())
-                .orElse(null);
+        // 7. Gán gói thuốc được đề xuất nếu có sẵn
+        List<CigarettePackage> recommendedPackages = new ArrayList<>();
+        CigarettePackage recommendedPackage = null;
 
+        if (request.getRecommendedPackageId() != null) {
+            // Nếu người dùng đã chọn rõ gói thuốc thay thế
+            recommendedPackage = cigarettePackageRepository.findById(request.getRecommendedPackageId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cigarette Package", request.getRecommendedPackageId()));
+        } else if (!isAdmin && smokingStatus != null && smokingStatus.getCigarettePackage() != null) {
+            // Gợi ý tất cả các gói thuốc lá thay thế từ bảng recommendation (isActive = true)
+            List<CigaretteRecommendation> recommendations = cigaretteRecommendationRepository
+                    .findByFromPackage_CigaretteIdAndIsActiveTrue(smokingStatus.getCigarettePackage().getCigaretteId());
 
-        // 6. Lưu kế hoạch
+            recommendedPackages = recommendations.stream()
+                    .map(CigaretteRecommendation::getToPackage)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+
+        plan.setRecommendedPackage(recommendedPackage);
+
+        // 8. Lưu kế hoạch
         plan = quitPlanRepository.save(plan);
 
-        // 7. Tạo danh sách stage và progress
-        int cigarettesPerDay = smokingStatus != null && smokingStatus.getCigarettesPerDay() != null
-                ? smokingStatus.getCigarettesPerDay()
-                : 10;
+        // 9. Xác định cigarettesPerDay và pricePerPack
+        Integer cigarettesPerDay = isAdmin
+                ? request.getCigarettesPerDay()
+                : smokingStatus != null ? smokingStatus.getCigarettesPerDay() : null;
 
-        BigDecimal pricePerPack = (smokingStatus != null && smokingStatus.getCigarettePackage() != null)
-                ? Optional.ofNullable(smokingStatus.getCigarettePackage().getPrice()).orElse(BigDecimal.ZERO)
-                : BigDecimal.ZERO;
+        if (cigarettesPerDay == null || cigarettesPerDay <= 0) {
+            cigarettesPerDay = 10; // fallback nếu thiếu
+        }
+        plan.setCigarettesPerDay(cigarettesPerDay);
 
+        BigDecimal pricePerPack;
+
+        if (recommendedPackage != null && recommendedPackage.getPrice() != null) {
+            pricePerPack = recommendedPackage.getPrice();
+        } else if (smokingStatus != null &&
+                smokingStatus.getCigarettePackage() != null &&
+                smokingStatus.getCigarettePackage().getPrice() != null) {
+            pricePerPack = smokingStatus.getCigarettePackage().getPrice();
+        } else {
+            pricePerPack = BigDecimal.ZERO;
+        }
+
+        // 10. Tạo stage và progress
         List<QuitPlanStage> stages = generateStages(plan, cigarettesPerDay, pricePerPack);
         quitPlanStageRepository.saveAll(stages);
 
@@ -117,10 +163,9 @@ public class QuitPlanService {
 
         plan.setQuitPlanStages(new HashSet<>(stages));
 
-        // 8. Trả về response (không còn suggestions)
+        // 11. Trả về response
         return quitPlanMapper.toResponse(plan);
     }
-
 
 
     /**
@@ -145,7 +190,8 @@ public class QuitPlanService {
             if (stageEnd.isAfter(end)) stageEnd = end; // Không vượt quá ngày kết thúc kế hoạch
 
             // Giảm dần số điếu thuốc mục tiêu theo từng stage
-            int target = Math.max(0, initialCigarettesPerDay - (initialCigarettesPerDay * i / numStages));
+            double ratio = 1.0 - ((double)i / (double)numStages);
+            int target = (int) Math.ceil(initialCigarettesPerDay * ratio);
 
             QuitPlanStage stage = new QuitPlanStage();
             stage.setStageName("Giai đoạn " + (i + 1));
@@ -173,19 +219,25 @@ public class QuitPlanService {
         LocalDate current = startDate;
 
         int cigarettesPerPack = 20; // Giả định 1 bao thuốc = 20 điếu
-
-        // Tính giá cho 1 điếu thuốc (để sau này tính tiết kiệm)
         BigDecimal pricePerCigarette = pricePerPack.divide(BigDecimal.valueOf(cigarettesPerPack), 2, RoundingMode.HALF_UP);
+
+        int expectedCigarettesPerDay = stage.getTargetCigarettesPerDay() != null ? stage.getTargetCigarettesPerDay() : 0;
 
         while (!current.isAfter(endDate)) {
             QuitProgress progress = new QuitProgress();
             progress.setDate(current);
-            progress.setCigarettesSmoked(0); // ban đầu chưa hút
-            progress.setMoneySpent(BigDecimal.ZERO); // ban đầu chưa tốn tiền
-            progress.setMoneySaved(BigDecimal.ZERO); // sẽ cập nhật sau
-            progress.setSmokingFreeDays(0); // chưa có ngày nào không hút
-            progress.setHealthStatus("Chưa cập nhật"); // người dùng sẽ cập nhật sau
-            progress.setQuitPlanStage(stage); // Thiết lập stage cho progress
+            progress.setCigarettesSmoked(0); // User sẽ cập nhật sau
+
+            // Lúc khởi tạo, user chưa hút gì, nên moneySpent = 0
+            progress.setMoneySpent(BigDecimal.ZERO);
+
+            // Giả định ban đầu tiết kiệm được toàn bộ số tiền theo kế hoạch
+            BigDecimal expectedSpent = pricePerCigarette.multiply(BigDecimal.valueOf(expectedCigarettesPerDay));
+            progress.setMoneySaved(expectedSpent);
+
+            progress.setSmokingFreeDays(0); // Sẽ được tính lại khi user cập nhật
+            progress.setHealthStatus(null); // User sẽ nhập thủ công
+            progress.setQuitPlanStage(stage);
 
             progresses.add(progress);
             current = current.plusDays(1);
@@ -307,41 +359,64 @@ public class QuitPlanService {
         QuitPlan plan = quitPlanRepository.findById(planId)
                 .orElseThrow(() -> new ResourceNotFoundException("QuitPlan", planId));
 
-        // Cập nhật trạng thái kế hoạch
+        // Nếu kế hoạch đã hoàn thành thì không làm gì cả
+        if (plan.getStatus() == QuitPlanStatus.COMPLETED) {
+            return quitPlanMapper.toResponse(plan);
+        }
+
+        // ✅ Cập nhật trạng thái kế hoạch
         plan.setStatus(QuitPlanStatus.COMPLETED);
         quitPlanRepository.save(plan);
 
-        // 🎖️ Tặng huy hiệu nếu chưa có
-        AchievementBadge badge = achievementBadgeRepository.findByBadgeType("QUIT_PLAN_COMPLETED")
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy huy hiệu tương ứng."));
+        User user = plan.getUser();
 
+        // 🎖️ Kiểm tra số kế hoạch đã hoàn thành
+        int completedPlans = quitPlanRepository.countByUserAndStatus(user, QuitPlanStatus.COMPLETED);
+
+        // Tặng huy hiệu theo mức độ
+        if (completedPlans >= 5) {
+            grantBadgeIfNotExists(user, "Hoàn thành 5 kế hoạch cai thuốc", plan);
+        } else if (completedPlans >= 3) {
+            grantBadgeIfNotExists(user, "Hoàn thành 3 kế hoạch cai thuốc", plan);
+        } else if (completedPlans >= 1) {
+            grantBadgeIfNotExists(user, "Hoàn thành 1 kế hoạch cai thuốc", plan);
+        }
+
+        return quitPlanMapper.toResponse(plan);
+    }
+
+    private void grantBadgeIfNotExists(User user, String badgeName, QuitPlan plan) {
+        //  Tìm huy hiệu theo tên
+        AchievementBadge badge = achievementBadgeRepository.findByBadgeName(badgeName)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy huy hiệu: " + badgeName));
+
+        // Kiểm tra người dùng đã nhận huy hiệu này chưa
         boolean alreadyAwarded = userBadgeRepository.existsByUser_UserIdAndBadge_BadgeId(
-                plan.getUser().getUserId(),
-                badge.getBadgeId()
+                user.getUserId(), badge.getBadgeId()
         );
 
         if (!alreadyAwarded) {
+            // Tạo và lưu UserBadge
             UserBadge userBadge = new UserBadge();
-            userBadge.setUser(plan.getUser());
+            userBadge.setUser(user);
             userBadge.setBadge(badge);
-            userBadge.setShared(false); // Không chia sẻ mặc định
+            userBadge.setShared(false);
             userBadgeRepository.save(userBadge);
+
+            //  Tạo và lưu Notification
+            Notification notify = Notification.builder()
+                    .user(user)
+                    .content("Bạn đã hoàn thành kế hoạch và nhận được huy hiệu: " + badgeName)
+                    .notificationType("QUIT_PLAN_COMPLETED")
+                    .sendDate(LocalDateTime.now())
+                    .status(NotificationStatus.SENT)
+                    .deleted(false)
+                    .quitPlan(plan)
+                    .achievementBadge(badge)
+                    .build();
+
+            notificationRepository.save(notify);
         }
-
-        // 🔔 Gửi thông báo
-        Notification notify = new Notification();
-        notify.setUser(plan.getUser());
-        notify.setContent("Bạn đã hoàn thành kế hoạch cai thuốc và nhận được huy hiệu: " + badge.getBadgeName());
-        notify.setNotificationType("QUIT_PLAN_COMPLETED");
-        notify.setSendDate(LocalDateTime.now());
-        notify.setStatus("sent");
-        notify.setDeleted(false); // Mặc định chưa xoá
-        notify.setQuitPlan(plan);
-        notify.setAchievementBadge(badge);
-
-        notificationRepository.save(notify);
-
-        return quitPlanMapper.toResponse(plan);
     }
 }
 

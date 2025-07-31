@@ -31,12 +31,26 @@ public class RatingController {
      * @param request đối tượng RatingRequest chứa thông tin đánh giá
      * @return RatingResponse chứa thông tin đánh giá đã lưu
      */
-    @Operation(summary = "Tạo đánh giá cho kế hoạch đã hoàn thành")
-    @PreAuthorize("hasRole('USER')")
-    @PostMapping
-    public ResponseEntity<RatingResponse> create(@RequestBody RatingRequest request) {
-        return ResponseEntity.ok(ratingService.createRating(request));
-    }
+//    @Operation(summary = "Tạo đánh giá cho kế hoạch đã hoàn thành")
+//    @PreAuthorize("hasRole('USER')")
+//    @PostMapping("/quit-plan")
+//    public ResponseEntity<RatingResponse> createRatingForQuitPlan(@RequestBody RatingRequest request) {
+//        return ResponseEntity.ok(ratingService.createQuitPlanRating(request));
+//    }
+//
+//    @Operation(summary = "Tạo đánh giá riêng cho coach")
+//    @PreAuthorize("hasRole('USER')")
+//    @PostMapping("/coach")
+//    public ResponseEntity<RatingResponse> createRatingForCoach(@RequestBody RatingRequest request) {
+//        return ResponseEntity.ok(ratingService.createCoachRating(request));
+//    }
+//
+//    @Operation(summary = "Tạo đánh giá cho bài viết")
+//    @PreAuthorize("hasRole('USER')")
+//    @PostMapping("/post")
+//    public ResponseEntity<RatingResponse> createRatingForPost(@RequestBody RatingRequest request) {
+//        return ResponseEntity.ok(ratingService.createPostRating(request));
+//    }
 
     /**
      * API lấy tất cả đánh giá dành cho một coach cụ thể.

@@ -24,7 +24,7 @@ public class UserMemberService {
     @Transactional
     public void assignFreePackageToUser(User user ) {
         // Tìm gói FREE bằng ID cố định
-        MemberPackage freePackage = memberPackageRepository.findById(1)
+        MemberPackage freePackage = memberPackageRepository.findById(10)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy gói FREE"));
 
         UserMemberPackage ump = new UserMemberPackage();
@@ -46,14 +46,25 @@ public class UserMemberService {
     }
 
     public UserMemberPackageResponse getCurrentPackage(Long userId) {
-        // Tìm gói hiện tại của user
-        Optional<UserMemberPackage> optional = userMemberPackageRepository
-                .findFirstByUser_UserIdAndStatusOrderByStartDateDesc(userId, "active");
+        final Long FREE_PACKAGE_ID = 10L;
 
-        UserMemberPackage ump = optional.orElseThrow(() ->
-                new RuntimeException("Người dùng chưa có gói nào đang active"));
+        // 1. Ưu tiên lấy gói trả phí đang active (id != FREE)
+        Optional<UserMemberPackage> paidPackage = userMemberPackageRepository
+                .findFirstByUser_UserIdAndStatusAndMemberPackage_MemberPackageIdNotOrderByStartDateDesc(
+                        userId, "active", FREE_PACKAGE_ID
+                );
 
-        return toResponse(ump);
+        if (paidPackage.isPresent()) {
+            return toResponse(paidPackage.get());
+        }
+
+        // 2. Nếu không có gói trả phí, lấy gói FREE đang active
+        return userMemberPackageRepository
+                .findFirstByUser_UserIdAndStatusAndMemberPackage_MemberPackageIdOrderByStartDateDesc(
+                        userId, "active", FREE_PACKAGE_ID
+                )
+                .map(this::toResponse)
+                .orElseThrow(() -> new RuntimeException("Người dùng chưa có gói nào đang active"));
     }
 
     @Transactional
@@ -68,8 +79,23 @@ public class UserMemberService {
             throw new RuntimeException("Gói FREE mặc định không thể hủy.");
         }
 
-        // Nếu không phải FREE thì hủy bình thường
+        // Nếu không phải FREE thì hủy gói hiện tại
         currentPackage.setStatus("inactive");
+        currentPackage.setEndDate(LocalDate.now());
         userMemberPackageRepository.save(currentPackage);
+
+        // Gán lại gói FREE cho user
+        MemberPackage freePackage = memberPackageRepository.findById(10)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy gói FREE."));
+
+        User user = currentPackage.getUser(); // đã có user từ currentPackage
+
+        UserMemberPackage newFreePackage = new UserMemberPackage();
+        newFreePackage.setUser(user);
+        newFreePackage.setMemberPackage(freePackage);
+        newFreePackage.setStartDate(LocalDate.now());
+        newFreePackage.setStatus("active");
+
+        userMemberPackageRepository.save(newFreePackage);
     }
 }

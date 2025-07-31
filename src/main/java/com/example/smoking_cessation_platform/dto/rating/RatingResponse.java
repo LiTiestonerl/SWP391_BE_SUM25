@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.dto.rating;
 
+import com.example.smoking_cessation_platform.Enum.RatingType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ public class RatingResponse {
     private Integer ratingId;
     private Integer ratingValue;
     private String feedbackText;
-    private String ratingType;
+    private RatingType ratingType;
     private LocalDateTime ratingDate;
     private String status;
 
