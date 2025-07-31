@@ -35,17 +35,17 @@ public class CigarettePackageService {
      */
     @Transactional
     public CigarettePackageResponse createCigarettePackage(CigarettePackagerequest createDto) {
-        if (cigarettePackageRepository.existsByCigaretteName(createDto.getCigaretteName())) {
+        if (cigarettePackageRepository.existsByCigaretteName(createDto.getCigarettePackageName())) {
             throw new RuntimeException("Gói thuốc lá với tên này đã tồn tại.");
         }
 
         CigarettePackage cigarettePackage = CigarettePackage.builder()
-                .cigaretteName(createDto.getCigaretteName())
+                .cigaretteName(createDto.getCigarettePackageName())
                 .brand(createDto.getCigaretteBrand())
                 .flavor(createDto.getFlavor())
-                .nicoteneStrength(createDto.getNicoteneStrength())
+                .nicoteneStrength(createDto.getNicotineLevel())
                 .sticksPerPack(createDto.getSticksPerPack())
-                .price(createDto.getPrice())
+                .price(createDto.getPricePerPack())
                 .build();
 
         CigarettePackage savedPackage = cigarettePackageRepository.save(cigarettePackage);
@@ -63,12 +63,12 @@ public class CigarettePackageService {
     public Optional<CigarettePackageResponse> updateCigarettePackage(Long cigaretteId, CigarettePackagerequest updateDto) {
         return cigarettePackageRepository.findById(cigaretteId)
                 .map(existingPackage -> {
-                    existingPackage.setCigaretteName(updateDto.getCigaretteName());
+                    existingPackage.setCigaretteName(updateDto.getCigarettePackageName());
                     existingPackage.setBrand(updateDto.getCigaretteBrand());
                     existingPackage.setFlavor(updateDto.getFlavor());
-                    existingPackage.setNicoteneStrength(updateDto.getNicoteneStrength());
+                    existingPackage.setNicoteneStrength(updateDto.getNicotineLevel());
                     existingPackage.setSticksPerPack(updateDto.getSticksPerPack());
-                    existingPackage.setPrice(updateDto.getPrice());
+                    existingPackage.setPrice(updateDto.getPricePerPack());
                     CigarettePackage updatedPackage = cigarettePackageRepository.save(existingPackage);
                     return convertToDto(updatedPackage);
                 });
@@ -116,7 +116,7 @@ public class CigarettePackageService {
         return CigarettePackageResponse.builder()
                 .cigarettePackageId(cigarettePackage.getCigaretteId())
                 .cigarettePackageName(cigarettePackage.getCigaretteName())
-                .brand(cigarettePackage.getBrand())
+                .cigaretteBrand(cigarettePackage.getBrand())
                 .flavor(cigarettePackage.getFlavor())
                 .nicotineLevel(cigarettePackage.getNicoteneStrength())
                 .sticksPerPack(cigarettePackage.getSticksPerPack())

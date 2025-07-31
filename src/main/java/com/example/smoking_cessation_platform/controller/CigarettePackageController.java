@@ -32,7 +32,7 @@ public class CigarettePackageController {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<CigarettePackageResponse> createCigarettePackage(CigarettePackagerequest createDto) {
+    public ResponseEntity<CigarettePackageResponse> createCigarettePackage(@Valid @RequestBody CigarettePackagerequest createDto) {
         CigarettePackageResponse newPackage = cigarettePackageService.createCigarettePackage(createDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(newPackage);
     }
@@ -81,6 +81,7 @@ public class CigarettePackageController {
      * @return ResponseEntity chứa DTO phản hồi của gói thuốc lá hoặc NOT_FOUND nếu không tìm thấy.
      */
     @GetMapping({"/{cigaretteId}"})
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<CigarettePackageResponse> getCigarettePackageById(@PathVariable Long cigaretteId) {
         Optional<CigarettePackageResponse> cigarettePackage = cigarettePackageService.getCigarettePackageById(cigaretteId);
         return cigarettePackage.map(ResponseEntity::ok)
@@ -94,6 +95,7 @@ public class CigarettePackageController {
      * @return ResponseEntity chứa danh sách DTO phản hồi của tất cả gói thuốc lá.
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<?> getAllCigarettePackages() {
         try {
             return ResponseEntity.ok(cigarettePackageService.getAllCigarettePackages());

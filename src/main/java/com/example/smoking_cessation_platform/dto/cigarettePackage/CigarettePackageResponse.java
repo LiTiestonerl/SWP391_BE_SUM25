@@ -14,7 +14,7 @@ public class CigarettePackageResponse {
 
     private String cigarettePackageName;
 
-    private String brand;
+    private String cigaretteBrand;
 
     private String flavor;
 

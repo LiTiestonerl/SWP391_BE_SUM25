@@ -17,13 +17,13 @@ import java.math.BigDecimal;
 public class CigarettePackagerequest {
 
     @NotNull(message = "Tên thuốc lá không được để trống")
-    private String cigaretteName;
+    private String cigarettePackageName;
 
     @NotNull(message = "Thương hiệu thuốc lá không được để trống")
     private String cigaretteBrand;
 
     @NotNull(message = "Giá thuốc lá không được để trống")
-    private BigDecimal price;
+    private BigDecimal pricePerPack;
 
     @NotNull(message = "Hương vị không được để trống")
     @Pattern(regexp = "^(MENTHOL|VANILLA|CHERRY|CHOCOLATE|ORIGINAL|MINT)$",
@@ -31,7 +31,7 @@ public class CigarettePackagerequest {
     private String flavor;
 
     @NotNull(message = "Cường độ nicotine không được để trống")
-    private NicotineStrength nicoteneStrength;
+    private NicotineStrength nicotineLevel;
 
     @NotNull(message = "Số điếu thuốc trong mỗi gói không được để trống")
     private Integer sticksPerPack;
