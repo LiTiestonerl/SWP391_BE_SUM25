@@ -83,7 +83,8 @@ public class AuthController {
     public ResponseEntity<?> registerOrLoginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
         try {
             AuthResponse user = authService.registerOrLoginWithGoogle(request);
-            return ResponseEntity.ok("Đăng nhập/Đăng ký Google thành công cho: " + user.getEmail());
+//            return ResponseEntity.ok("Đăng nhập/Đăng ký Google thành công cho: " + user.getEmail());
+            return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {

@@ -14,5 +14,5 @@ public interface AchievementBadgeRepository extends JpaRepository<AchievementBad
 
     List<AchievementBadge> findAllByDeletedFalse();
 
-    Optional<AchievementBadge> findByBadgeType(String badgeType);
+    Optional<AchievementBadge> findByBadgeName(String badgeName);
 }
