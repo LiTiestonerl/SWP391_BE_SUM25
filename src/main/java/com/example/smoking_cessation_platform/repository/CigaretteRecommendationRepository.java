@@ -41,7 +41,7 @@ public interface CigaretteRecommendationRepository extends JpaRepository<Cigaret
     List<CigaretteRecommendation> findSameBrandFlavorLighterRecommendations(@Param("cigarette_id") Long cigaretteId);
 
     // Tìm theo trạng thái hút thuốc (cập nhật cho Enum)
-    public abstract List<CigaretteRecommendation> findBySmokingStatus_StatusIdAndIsActiveTrue(Long statusId);
+    public abstract List<CigaretteRecommendation> findBySmokingStatus_StatusIdAndIsActiveTrue(Integer statusId);
 
     // Lấy các đề xuất thuốc lá cho một loại thuốc (package)
     List<CigaretteRecommendation> findByFromPackage_CigaretteIdAndIsActiveTrue(Long fromPackageId);

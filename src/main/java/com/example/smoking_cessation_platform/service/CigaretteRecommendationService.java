@@ -85,7 +85,7 @@ public class CigaretteRecommendationService {
     /**
      * Lấy gợi ý theo trạng thái hút thuốc
      */
-    public List<CigaretteRecommendationResponse> getRecommendationsBySmokingStatus(Long smokingStatusId) {
+    public List<CigaretteRecommendationResponse> getRecommendationsBySmokingStatus(Integer smokingStatusId) {
         List<CigaretteRecommendation> recommendations = recommendationRepository.findBySmokingStatus_StatusIdAndIsActiveTrue(smokingStatusId);
         return recommendations.stream()
                 .map(this::convertToResponse)
