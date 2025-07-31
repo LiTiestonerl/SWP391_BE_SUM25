@@ -1,5 +1,6 @@
 package com.example.smoking_cessation_platform.entity;
 
+import com.example.smoking_cessation_platform.Enum.NotificationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,8 +36,9 @@ public class Notification implements Serializable {
     @Column(name = "send_date")
     private LocalDateTime sendDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status = "sent";
+    private NotificationStatus status;
 
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;

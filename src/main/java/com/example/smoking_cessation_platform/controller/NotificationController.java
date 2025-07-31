@@ -28,11 +28,26 @@ public class NotificationController {
     public ResponseEntity<NotificationResponse> create(@RequestBody NotificationRequest request) {
         return ResponseEntity.ok(notificationService.create(request));
     }
+
     @Operation(summary = "Lấy danh sách thông báo theo user")
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<NotificationResponse>> getMyNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long currentUserId = userDetails.getUserId(); // hoặc getUserId()
         return ResponseEntity.ok(notificationService.getByUser(currentUserId));
+    }
+
+    @PutMapping("/{id}/read")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> markAsRead(@PathVariable Integer id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        notificationService.markAsRead(id, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> delete(@PathVariable Integer id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        notificationService.deleteByIdAndUser(id, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
     }
 }
