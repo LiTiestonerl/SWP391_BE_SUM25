@@ -1,6 +1,5 @@
 package com.example.smoking_cessation_platform.entity;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,22 +28,18 @@ public class MemberPackage implements Serializable {
     @Column(name = "member_package_id", nullable = false)
     private Integer memberPackageId;
 
-    @Schema(description = "Tên gói membership", example = "Gói VIP 3 tháng")
     @Column(name = "package_name", nullable = false)
     private String packageName;
 
-    @Schema(description = "Giá của gói (VND)", example = "150000")
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
     /**
      * Tháng
      */
-    @Schema(description = "Thời gian hiệu lực của gói (tính theo tháng)", example = "3")
     @Column(name = "duration", nullable = false)
     private Integer duration;
 
-    @Schema(description = "Mô tả chi tiết tính năng của gói", example = "Hỗ trợ tư vấn riêng, ưu đãi giảm giá")
     @Column(name = "features_description", columnDefinition = "TEXT")
     private String featuresDescription;
 

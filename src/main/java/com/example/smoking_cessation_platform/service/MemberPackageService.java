@@ -3,11 +3,16 @@ package com.example.smoking_cessation_platform.service;
 import com.example.smoking_cessation_platform.entity.MemberPackage;
 import com.example.smoking_cessation_platform.dto.memberPackage.MemberPackageRequest;
 import com.example.smoking_cessation_platform.dto.memberPackage.MemberPackageResponse;
+import com.example.smoking_cessation_platform.entity.User;
+import com.example.smoking_cessation_platform.entity.UserMemberPackage;
 import com.example.smoking_cessation_platform.repository.MemberPackageRepository;
+import com.example.smoking_cessation_platform.repository.UserMemberPackageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,6 +22,9 @@ public class MemberPackageService {
 
     @Autowired
     private MemberPackageRepository memberPackageRepository;
+
+    @Autowired
+    private UserMemberPackageRepository userMemberPackageRepository;
 
     /**
      * Tạo một gói đăng ký mới.
@@ -106,4 +114,49 @@ public class MemberPackageService {
                 .featuresDescription(memberPackage.getFeaturesDescription())
                 .build();
     }
+
+    @Transactional
+    void grantMemberPackage(User user, MemberPackage memberPackage) {
+        // Lấy danh sách gói đang active
+        List<UserMemberPackage> activePackages = userMemberPackageRepository.findByUser_UserIdAndStatus(user.getUserId(), "active");
+
+        for (UserMemberPackage ump : activePackages) {
+            BigDecimal currentPrice = ump.getMemberPackage().getPrice();
+            BigDecimal newPrice = memberPackage.getPrice();
+
+            // Nếu gói hiện tại đang active có giá cao hơn gói mới => chặn downgrade
+            if (currentPrice.compareTo(newPrice) > 0) {
+                throw new IllegalStateException("Bạn đang sở hữu gói có giá cao hơn, không thể mua gói thấp hơn.");
+            }
+        }
+
+        // Vô hiệu hoá tất cả gói active hiện tại
+        userMemberPackageRepository.deactivateAllByUser(user.getUserId());
+
+        // Giới hạn duration tối đa (ví dụ: 120 tháng)
+        int maxDurationMonths = 1000;
+        int duration = memberPackage.getDuration();
+        if (duration > maxDurationMonths) {
+            throw new IllegalArgumentException("Thời hạn gói vượt quá giới hạn cho phép (" + maxDurationMonths + " tháng)");
+        }
+
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusMonths(duration);
+
+        // Kiểm tra ngày vượt quá giới hạn MySQL (9999-12-31)
+        if (endDate.isAfter(LocalDate.of(9999, 12, 31))) {
+            throw new IllegalArgumentException("Ngày kết thúc vượt quá giới hạn cho phép trong cơ sở dữ liệu");
+        }
+
+        UserMemberPackage userMemberPackage = new UserMemberPackage();
+        userMemberPackage.setUser(user);
+        userMemberPackage.setMemberPackage(memberPackage);
+        userMemberPackage.setStartDate(startDate);
+        userMemberPackage.setEndDate(endDate);
+        userMemberPackage.setStatus("active");
+
+        userMemberPackageRepository.save(userMemberPackage);
+    }
+
+
 }

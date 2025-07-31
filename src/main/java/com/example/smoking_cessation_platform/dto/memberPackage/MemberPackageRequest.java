@@ -22,9 +22,10 @@ public class MemberPackageRequest {
     private BigDecimal price;
 
     @NotNull(message = "Thời lượng không được để trống")
-    @Positive(message = "Thời lượng phải là số dương")
+    @Min(1)
+    @Max(10000)
     private Integer duration;
 
     @Size(max = 65535, message = "Mô tả tính năng quá dài")
     private String featuresDescription;
-}
+ }
