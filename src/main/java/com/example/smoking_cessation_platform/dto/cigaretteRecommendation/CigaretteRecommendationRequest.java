@@ -17,8 +17,6 @@ public class CigaretteRecommendationRequest {
     private Long fromPackageId;
     private Long toPackageId;
     private String notes;
-    private Integer priorityOrder;
-    private Boolean isActive;
     private Integer smokingStatusId;
 
 }

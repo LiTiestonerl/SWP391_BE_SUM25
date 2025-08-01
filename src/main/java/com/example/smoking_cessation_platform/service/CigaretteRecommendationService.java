@@ -72,66 +72,19 @@ public class CigaretteRecommendationService {
     }
 
     /**
-     * Lấy tất cả gợi ý cho một loại thuốc (kết hợp nhiều chiến lược)
-     */
-    public List<CigaretteRecommendationResponse> getRecommendationsByFromPackage(Long fromPackageId) {
-        List<CigaretteRecommendation> recommendations = recommendationRepository
-                .findByFromPackage_CigaretteIdAndIsActiveTrue(fromPackageId);
-        return recommendations.stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Lấy gợi ý theo trạng thái hút thuốc
      */
     public List<CigaretteRecommendationResponse> getRecommendationsBySmokingStatus(Integer smokingStatusId) {
-        List<CigaretteRecommendation> recommendations = recommendationRepository.findBySmokingStatus_StatusIdAndIsActiveTrue(smokingStatusId);
+        List<CigaretteRecommendation> recommendations = recommendationRepository.findBySmokingStatus_StatusId(smokingStatusId);
         return recommendations.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Lấy tất cả recommendations đang active
-     */
-    public List<CigaretteRecommendationResponse> getAllActiveRecommendations() {
-        List<CigaretteRecommendation> recommendations = recommendationRepository
-                .findAll().stream()
-                .filter(r -> r.getIsActive())
-                .collect(Collectors.toList());
-        return recommendations.stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
-    }
 
     public Optional<CigaretteRecommendationResponse> getRecommendationById(Integer recId) {
         return recommendationRepository.findById(recId)
                 .map(this::convertToResponse);
-    }
-
-    /**
-     * Admin: Toggle active status
-     */
-    public CigaretteRecommendationResponse toggleActiveStatus(Integer recId) {
-        CigaretteRecommendation existing = recommendationRepository.findById(recId)
-                .orElseThrow(() -> new RuntimeException("Recommendation not found"));
-
-        existing.setIsActive(!existing.getIsActive());
-        CigaretteRecommendation updated = recommendationRepository.save(existing);
-        return convertToResponse(updated);
-    }
-
-    /**
-     * Admin: Update priority
-     */
-    public CigaretteRecommendationResponse updatePriority(Integer recId, Integer priority) {
-        CigaretteRecommendation existing = recommendationRepository.findById(recId)
-                .orElseThrow(() -> new RuntimeException("Recommendation not found"));
-
-        existing.setPriorityOrder(priority);
-        CigaretteRecommendation updated = recommendationRepository.save(existing);
-        return convertToResponse(updated);
     }
 
     private CigaretteRecommendationResponse convertToResponse(CigaretteRecommendation recommendation) {
