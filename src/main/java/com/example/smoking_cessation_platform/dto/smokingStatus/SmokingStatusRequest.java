@@ -37,7 +37,6 @@ public class SmokingStatusRequest {
 
     private Long packageId;
 
-    @NotNull(message = "Ngày ghi nhận không được để trống")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate recordDate;
 
