@@ -91,8 +91,6 @@ public class CigaretteRecommendationService {
         return CigaretteRecommendationResponse.builder()
                 .recId(recommendation.getRecId())
                 .notes(recommendation.getNotes())
-                .priorityOrder(recommendation.getPriorityOrder())
-                .isActive(recommendation.getIsActive())
                 .fromPackageId(recommendation.getFromPackage().getCigaretteId())
                 .fromCigaretteName(recommendation.getFromPackage().getCigaretteName())
                 .fromBrand(recommendation.getFromPackage().getBrand())
