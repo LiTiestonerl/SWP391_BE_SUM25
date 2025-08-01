@@ -24,14 +24,6 @@ public class CigaretteRecommendationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/for-cigarette/{cigaretteId}")
-    public ResponseEntity<List<CigaretteRecommendationResponse>> getRecommendationsForCigarette(
-            @PathVariable Long cigaretteId) {
-        List<CigaretteRecommendationResponse> recommendations =
-                recommendationService.getRecommendationsByFromPackage(cigaretteId);
-        return ResponseEntity.ok(recommendations);
-    }
-
     // Added endpoints for specialized recommendation strategies
     @GetMapping("/lighter-nicotine/{cigaretteId}")
     public ResponseEntity<List<CigaretteRecommendationResponse>> getLighterNicotineRecommendations(
@@ -73,37 +65,4 @@ public class CigaretteRecommendationController {
         return ResponseEntity.ok(recommendations);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<CigaretteRecommendationResponse>> getAllActiveRecommendations() {
-        try {
-            List<CigaretteRecommendationResponse> recommendations =
-                    recommendationService.getAllActiveRecommendations();
-            return ResponseEntity.ok(recommendations);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    // Admin endpoints
-    @PatchMapping("/admin/{recId}/toggle-active")
-    public ResponseEntity<CigaretteRecommendationResponse> toggleActiveStatus(@PathVariable Integer recId) {
-        try {
-            CigaretteRecommendationResponse response = recommendationService.toggleActiveStatus(recId);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PutMapping("/admin/{recId}/priority")
-    public ResponseEntity<CigaretteRecommendationResponse> updatePriority(
-            @PathVariable Integer recId,
-            @RequestParam Integer priority) {
-        try {
-            CigaretteRecommendationResponse response = recommendationService.updatePriority(recId, priority);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
 }
