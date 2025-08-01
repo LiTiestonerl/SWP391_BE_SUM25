@@ -131,12 +131,9 @@ public class ChatService {
 
         return messages.stream()
                 .filter(msg -> {
-                    // Nếu là user thì chỉ lấy tin chưa bị xóa bởi user
                     if (session.getUser().getUserId().equals(userId)) {
                         return !msg.isDeletedByUser();
-                    }
-                    // Nếu là coach thì chỉ lấy tin chưa bị xóa bởi coach
-                    else if (session.getCoach().getUserId().equals(userId)) {
+                    } else if (session.getCoach().getUserId().equals(userId)) {
                         return !msg.isDeletedByCoach();
                     }
                     return false;
