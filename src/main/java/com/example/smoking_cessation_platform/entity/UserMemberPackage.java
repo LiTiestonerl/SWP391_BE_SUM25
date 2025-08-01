@@ -39,6 +39,10 @@ public class UserMemberPackage implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY )
+    @JoinColumn(name = "coach_id")
+    private User coach;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_package_id", nullable = false)
     private MemberPackage memberPackage;

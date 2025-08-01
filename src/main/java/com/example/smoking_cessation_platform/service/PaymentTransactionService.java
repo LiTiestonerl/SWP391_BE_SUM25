@@ -119,7 +119,8 @@ public class PaymentTransactionService {
         tx.setTransactionDate(LocalDateTime.now());
         paymentTransactionRepository.save(tx);
 
-        memberPackageService.grantMemberPackage(tx.getUser(), tx.getMemberPackage());
+        User coach = null;
+        memberPackageService.grantMemberPackage(tx.getUser(), tx.getMemberPackage(), coach);
 
         return Optional.of(tx);
     }

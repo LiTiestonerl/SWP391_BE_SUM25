@@ -116,7 +116,9 @@ public class MemberPackageService {
     }
 
     @Transactional
-    void grantMemberPackage(User user, MemberPackage memberPackage) {
+   public void grantMemberPackage(User user, MemberPackage memberPackage, User coach) {
+
+        checkCoachSupported(memberPackage, coach);
         // Lấy danh sách gói đang active
         List<UserMemberPackage> activePackages = userMemberPackageRepository.findByUser_UserIdAndStatus(user.getUserId(), "active");
 
@@ -155,7 +157,16 @@ public class MemberPackageService {
         userMemberPackage.setEndDate(endDate);
         userMemberPackage.setStatus("active");
 
+        if (coach != null) {
+            userMemberPackage.setCoach(coach); // giả sử UserMemberPackage có trường coach
+        }
         userMemberPackageRepository.save(userMemberPackage);
+    }
+
+    private void checkCoachSupported(MemberPackage memberPackage, User coach) {
+        if (coach != null && !memberPackage.getSupportedCoaches().contains(coach)) {
+            throw new IllegalStateException("Coach này không được hỗ trợ bởi gói thành viên bạn đang mua.");
+        }
     }
 
 

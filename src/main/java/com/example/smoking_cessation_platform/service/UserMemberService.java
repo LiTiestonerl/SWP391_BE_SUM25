@@ -6,6 +6,7 @@ import com.example.smoking_cessation_platform.entity.User;
 import com.example.smoking_cessation_platform.entity.UserMemberPackage;
 import com.example.smoking_cessation_platform.repository.MemberPackageRepository;
 import com.example.smoking_cessation_platform.repository.UserMemberPackageRepository;
+import com.example.smoking_cessation_platform.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,9 @@ public class UserMemberService {
 
     @Autowired
     private UserMemberPackageRepository userMemberPackageRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Transactional
     public void assignFreePackageToUser(User user ) {
@@ -97,5 +101,25 @@ public class UserMemberService {
         newFreePackage.setStatus("active");
 
         userMemberPackageRepository.save(newFreePackage);
+    }
+    @Transactional
+    public void assignCoachToUserPackage(Long userId, Long coachId) {
+        // Tìm gói active hiện tại
+        UserMemberPackage ump = userMemberPackageRepository
+                .findFirstByUser_UserIdAndStatusOrderByStartDateDesc(userId, "active")
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy gói active"));
+
+        // Tìm coach
+        User coach = userRepository.findById(coachId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy coach"));
+
+        // Kiểm tra coach có được hỗ trợ bởi gói không
+        if (!ump.getMemberPackage().getSupportedCoaches().contains(coach)) {
+            throw new IllegalStateException("Coach này không được hỗ trợ bởi gói của bạn");
+        }
+
+        // Gán coach
+        ump.setCoach(coach);
+        userMemberPackageRepository.save(ump);
     }
 }
