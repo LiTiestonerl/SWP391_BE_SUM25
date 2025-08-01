@@ -1,10 +1,8 @@
 package com.example.smoking_cessation_platform.entity;
 
+import com.example.smoking_cessation_platform.Enum.MessageStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
@@ -13,13 +11,15 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"chatSession", "sender"})
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "chat_message")
 public class ChatMessage implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private boolean deletedByUser = false;
+    private boolean deletedByCoach = false;
 
     @Id
     @Column(name = "message_id", nullable = false)
@@ -31,9 +31,18 @@ public class ChatMessage implements Serializable {
 
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
+    @PrePersist
+    public void prePersist() {
+        if (timestamp == null) {
+            timestamp = LocalDateTime.now(); // Gán thời gian hiện tại nếu chưa có
+        }
+    }
 
     @Column(name = "status")
-    private String status = "active";
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private MessageStatus status = MessageStatus.ACTIVE;
+
 
 
     @ManyToOne(fetch = FetchType.LAZY)

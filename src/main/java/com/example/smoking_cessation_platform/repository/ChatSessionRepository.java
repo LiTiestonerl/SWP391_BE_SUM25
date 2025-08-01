@@ -5,8 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChatSessionRepository extends JpaRepository<ChatSession, Integer>, JpaSpecificationExecutor<ChatSession> {
-    List<ChatSession> findByUser_UserIdOrCoach_UserId(Long userId, Long coachId);
+    Optional<ChatSession> findByUser_UserIdAndCoach_UserId(Long userId, Long coachId);
 
+    List<ChatSession> findByUser_UserIdAndDeletedByUserFalse(Long userId);
+
+    List<ChatSession> findByCoach_UserIdAndDeletedByCoachFalse(Long coachId);
 }

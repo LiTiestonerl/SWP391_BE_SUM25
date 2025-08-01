@@ -178,10 +178,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/smoking-status/{userId}").hasRole("ADMIN")
 
                         //Chat
-                        .requestMatchers(HttpMethod.GET, "/api/chat/sessions").hasAnyRole("USER", "COACH")
-                        .requestMatchers(HttpMethod.GET, "/api/chat/sessions/{id}").hasAnyRole("USER", "COACH")
-                        .requestMatchers(HttpMethod.GET, "/api/chat/sessions/{id}/messages").hasAnyRole("USER", "COACH")
-                        .requestMatchers(HttpMethod.POST, "/api/chat/sessions").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET,"/api/chat-session/session").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET,"/api/chat-session/coach/session").hasRole("COACH")
+                        .requestMatchers(HttpMethod.GET,"/api/chat-session/{sessionId}/message").hasAnyRole("USER","COACH")
+                        .requestMatchers(HttpMethod.POST,"/api/chat-session/session").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST,"/api/chat-session/session/{sessionId}/message").hasAnyRole("USER","COACH")
+                        .requestMatchers(HttpMethod.DELETE,"/api/chat-session/session/{sessionId}").hasAnyRole("USER","COACH")
+                        .requestMatchers(HttpMethod.DELETE,"/api/chat-session/session/{sessionId}/message/{messageId}").hasAnyRole("USER","COACH")
 
                         //AdminStatus
                         .requestMatchers("/api/admin/dashboard/**").hasRole("ADMIN")
