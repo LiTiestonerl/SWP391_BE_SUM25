@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -41,7 +42,7 @@ public class SmokingStatusService {
 
         CigarettePackage cigarettePackage = null;
         if (createDto.getPackageId() != null) {
-            cigarettePackage = cigarettePackageRepository.findById(Long.valueOf(createDto.getPackageId()))
+            cigarettePackage = cigarettePackageRepository.findById(createDto.getPackageId())
                     .orElseThrow(() -> new RuntimeException("Gói thuốc lá không tồn tại."));
         }
 
@@ -50,7 +51,7 @@ public class SmokingStatusService {
                 .frequency(createDto.getFrequency())
                 .preferredFlavor(createDto.getPreferredFlavor())
                 .preferredNicotineLevel(createDto.getPreferredNicotineLevel())
-                .recordDate(createDto.getRecordDate())
+                .recordDate(LocalDate.now())
                 .user(user)
                 .cigarettePackage(cigarettePackage)
                 .build();
@@ -81,7 +82,7 @@ public class SmokingStatusService {
 
         CigarettePackage cigarettePackage = null;
         if (updateDto.getPackageId() != null) {
-            cigarettePackage = cigarettePackageRepository.findById(Long.valueOf(updateDto.getPackageId()))
+            cigarettePackage = cigarettePackageRepository.findById(updateDto.getPackageId())
                     .orElseThrow(() -> new RuntimeException("Gói thuốc lá không tồn tại."));
         }
 
@@ -89,7 +90,7 @@ public class SmokingStatusService {
         existingStatus.setFrequency(updateDto.getFrequency());
         existingStatus.setPreferredFlavor(updateDto.getPreferredFlavor());
         existingStatus.setPreferredNicotineLevel(updateDto.getPreferredNicotineLevel());
-        existingStatus.setRecordDate(updateDto.getRecordDate());
+        existingStatus.setRecordDate(LocalDate.now());
         existingStatus.setCigarettePackage(cigarettePackage);
 
         SmokingStatus updatedStatus = smokingStatusRepository.save(existingStatus);
